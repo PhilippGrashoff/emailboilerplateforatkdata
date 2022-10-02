@@ -4,18 +4,12 @@ namespace emailboilerplateforatkdata;
 
 use Atk4\Data\Model;
 use Atk4\Ui\Form\Control\Dropdown;
+use Atk4\Ui\HtmlTemplate;
 use DirectoryIterator;
-use Exception;
 use ReflectionClass;
-use traitsforatkdata\CreatedByTrait;
-use traitsforatkdata\CreatedDateAndLastUpdatedTrait;
-use traitsforatkdata\ExtraModelFunctionsTrait;
 
 abstract class BaseEmail extends Model
 {
-    use CreatedDateAndLastUpdatedTrait;
-    use CreatedByTrait;
-    use ExtraModelFunctionsTrait;
 
     public $table = 'base_email';
 
@@ -25,18 +19,18 @@ abstract class BaseEmail extends Model
     //like title, but more descriptive: What is this email for
     public string $description = '';
 
-    //can it have multiple templates, e.g. per Activity?
+    //can it have multiple email templates, e.g. per Activity?
     public bool $canHaveMultipleTemplates = false;
 
-    public $emailAddressClassName = EmailAddress::class;
+    public string $emailAddressClassName = EmailAddress::class;
 
     public Model $model;
 
-    //You can define an ID of an EmailTemplate to use. If so, this will be taken instead of the normal one used for the implementation
-    public $emailTemplateId = null;
 
     //the template to load to get initial subject and message
-    public $template;
+    public string $templateFile;
+    protected HtmlTemplate $messageTemplate;
+    protected HtmlTemplate $subjectTemplate;
 
     //PHPMailer instance which takes care of the actual sending
     private PHPMailer $phpMailer;
@@ -51,25 +45,25 @@ abstract class BaseEmail extends Model
     protected function init(): void
     {
         parent::init();
-        $this->addFields(
-            [
-                ['subject', 'type' => 'string'],
-                ['message', 'type' => 'text'],
-                ['attachments', 'type' => 'array', 'serialize' => 'json'],
-            ]
+        $this->addField(
+            'subject'
+        );
+        $this->addField(
+            'message',
+            ['type' => 'text']
+        );
+        $this->addField(
+            'attachments', ['type' => 'array', 'serialize' => 'json']
         );
 
         $this->hasOne(
             'email_account_id',
             [
-                'model' => [EmailAccount::class, 'enableInternalAccounts' => $this->enableInternalAccounts],
+                'model' => ['model' => EmailAccount::class],
                 'type' => 'integer',
                 'ui' => ['form' => [Dropdown::class, 'empty' => '...']]
             ]
         );
-        $this->addCreatedDateAndLastUpdateFields();
-        $this->addCreatedDateAndLastUpdatedHook();
-        $this->addCreatedByFieldAndHook();
 
         $this->containsMany('email_recipient', [EmailRecipient::class]);
     }
@@ -123,76 +117,34 @@ abstract class BaseEmail extends Model
 
     protected function loadInitialTemplate()
     {
-        if (
-            !$this->template
-            && !$this->emailTemplateId
-        ) {
+        //if Template was already injected, leave as is
+        if ($this->messageTemplate !== null) {
             return;
         }
+        $this->messageTemplate = EmailTemplateLoader::getEmailTemplate($this);
 
-        if ($this->emailTemplateId) {
-            $template = new Template();
-            $template->app = $this->app;
-            $template->loadTemplateFromString(
-                (new EmailTemplate($this->persistence))->load($this->emailTemplateId)->get('value')
-            );
-        } else {
-            try {
-                $template = $this->app->loadEmailTemplate($this->template, false, $this->customTemplateModels);
-            } catch (Exception $e) {
-                $template = new Template();
-                $template->app = $this->app;
-                $template->loadTemplateFromString($this->template);
-            }
-        }
+        $this->messageTemplate->trySet('recipient_firstname', '{$recipient_firstname}');
+        $this->messageTemplate->trySet('recipient_lastname', '{$recipient_lastname}');
+        $this->messageTemplate->trySet('recipient_email', '{$recipient_email}');
 
-        $template->trySet('recipient_firstname', '{$recipient_firstname}');
-        $template->trySet('recipient_lastname', '{$recipient_lastname}');
-        $template->trySet('recipient_email', '{$recipient_email}');
+        $this->processMessageTemplateOnLoad();
+        $this->loadSubjectFromTemplate();
 
-        if (is_callable($this->processMessageTemplate)) {
-            call_user_func($this->processMessageTemplate, $template, $this->model);
-        }
-
-        $template->setSTDValues();
-
-        //get subject from Template if available
-        if ($template->hasTag('Subject')) {
-            $t_subject = $template->cloneRegion('Subject');
-            $template->del('Subject');
-            if (is_callable($this->processSubjectTemplate)) {
-                call_user_func($this->processSubjectTemplate, $t_subject, $this->model);
-            }
-            $this->set('subject', $t_subject->render());
-        }
-
-        //add Custom signature per user
-        $this->_loadUserSignature($template);
-
-        $this->set('message', $template->render());
+        $this->set('subject', $this->subjectTemplate->renderToHtml());
+        $this->set('message', $this->messageTemplate->renderToHtml());
     }
 
-
-    /*
-     * replace signature from template with custom one from logged in user
-     */
-    protected function _loadUserSignature(\atk4\ui\Template $template)
+    protected function loadSubjectFromTemplate(): void
     {
-        if (!$template->hasTag('Signature')) {
-            return;
+        //get subject from Template if available
+        if ($this->messageTemplate->hasTag('Subject')) {
+            $this->subjectTemplate = $this->messageTemplate->cloneRegion('Subject');
+            $this->messageTemplate->del('Subject');
+        } else {
+            $this->$this->subjectTemplate = new HtmlTemplate('');
         }
-        //use EOOUser signature if available
-        if (
-            isset($this->app->auth->user)
-            && !empty($this->app->auth->user->getSignature())
-        ) {
-            $template->del('Signature');
-            $template->appendHTML('Signature', nl2br(htmlspecialchars($this->app->auth->user->getSignature())));
-        } //if not, use standard signature if set
-        elseif ($this->app->getSetting('STD_EMAIL_SIGNATURE')) {
-            $template->del('Signature');
-            $template->appendHTML('Signature', nl2br(htmlspecialchars($this->app->getSetting('STD_EMAIL_SIGNATURE'))));
-        }
+
+        $this->processSubjectTemplateOnLoad();
     }
 
 
