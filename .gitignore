@@ -1,0 +1,7 @@
+/config_local.php
+/vendor/*
+/build/*
+.idea/*
+.phpunit.result.cache
+/tests/logs/*
+/output/*
