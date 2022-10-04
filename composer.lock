@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "157fc25eae2a284ec74350f3884b7f27",
+    "content-hash": "13f61480ae55cae6fc71efeef3d2390b",
     "packages": [
         {
             "name": "atk4/core",
@@ -426,16 +426,16 @@
         },
         {
             "name": "doctrine/dbal",
-            "version": "3.3.8",
+            "version": "3.4.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/dbal.git",
-                "reference": "f873a820227bc352d023791775a01f078a30dfe1"
+                "reference": "a5a58773109c0abb13e658c8ccd92aeec8d07f9e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/dbal/zipball/f873a820227bc352d023791775a01f078a30dfe1",
-                "reference": "f873a820227bc352d023791775a01f078a30dfe1",
+                "url": "https://api.github.com/repos/doctrine/dbal/zipball/a5a58773109c0abb13e658c8ccd92aeec8d07f9e",
+                "reference": "a5a58773109c0abb13e658c8ccd92aeec8d07f9e",
                 "shasum": ""
             },
             "require": {
@@ -443,21 +443,21 @@
                 "doctrine/cache": "^1.11|^2.0",
                 "doctrine/deprecations": "^0.5.3|^1",
                 "doctrine/event-manager": "^1.0",
-                "php": "^7.3 || ^8.0",
+                "php": "^7.4 || ^8.0",
                 "psr/cache": "^1|^2|^3",
                 "psr/log": "^1|^2|^3"
             },
             "require-dev": {
-                "doctrine/coding-standard": "9.0.0",
-                "jetbrains/phpstorm-stubs": "2022.1",
-                "phpstan/phpstan": "1.8.2",
+                "doctrine/coding-standard": "10.0.0",
+                "jetbrains/phpstorm-stubs": "2022.2",
+                "phpstan/phpstan": "1.8.3",
                 "phpstan/phpstan-strict-rules": "^1.3",
-                "phpunit/phpunit": "9.5.21",
+                "phpunit/phpunit": "9.5.24",
                 "psalm/plugin-phpunit": "0.17.0",
                 "squizlabs/php_codesniffer": "3.7.1",
-                "symfony/cache": "^5.2|^6.0",
-                "symfony/console": "^2.7|^3.0|^4.0|^5.0|^6.0",
-                "vimeo/psalm": "4.24.0"
+                "symfony/cache": "^5.4|^6.0",
+                "symfony/console": "^4.4|^5.4|^6.0",
+                "vimeo/psalm": "4.27.0"
             },
             "suggest": {
                 "symfony/console": "For helpful console commands such as SQL execution and import of files."
@@ -517,7 +517,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/dbal/issues",
-                "source": "https://github.com/doctrine/dbal/tree/3.3.8"
+                "source": "https://github.com/doctrine/dbal/tree/3.4.5"
             },
             "funding": [
                 {
@@ -533,7 +533,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-08-05T15:35:35+00:00"
+            "time": "2022-09-23T17:48:57+00:00"
         },
         {
             "name": "doctrine/deprecations",
@@ -717,6 +717,40 @@
             },
             "abandoned": "mvorisek/atk4-hintable",
             "time": "2021-04-15T15:10:36+00:00"
+        },
+        {
+            "name": "philippgrashoff/secondarymodelforatk",
+            "version": "2.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PhilippGrashoff/secondarymodelforatk.git",
+                "reference": "f4f64ab438d97ee83e79270cbb89ee7196152fa0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PhilippGrashoff/secondarymodelforatk/zipball/f4f64ab438d97ee83e79270cbb89ee7196152fa0",
+                "reference": "f4f64ab438d97ee83e79270cbb89ee7196152fa0",
+                "shasum": ""
+            },
+            "require": {
+                "atk4/data": "2.4.*",
+                "philippgrashoff/traitsforatkdata": "2.4.*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "secondarymodelforatk\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "support": {
+                "issues": "https://github.com/PhilippGrashoff/secondarymodelforatk/issues",
+                "source": "https://github.com/PhilippGrashoff/secondarymodelforatk/tree/2.4"
+            },
+            "time": "2022-08-20T13:29:32+00:00"
         },
         {
             "name": "philippgrashoff/traitsforatkdata",
@@ -3140,7 +3174,7 @@
     },
     "platform-dev": [],
     "platform-overrides": {
-        "php": "7.3"
+        "php": "7.4"
     },
     "plugin-api-version": "2.0.0"
 }

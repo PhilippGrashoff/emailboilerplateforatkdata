@@ -4,22 +4,21 @@ namespace emailboilerplateforatkdata;
 
 use secondarymodelforatk\SecondaryModel;
 
-class EmailTemplate extends SecondaryModel
+class Attachment extends SecondaryModel
 {
 
-    public $table = 'email_template';
+    public $table = 'email_recipient';
 
 
     protected function init(): void
     {
         parent::init();
-
         $this->addFields(
             [
-                ['ident', 'type' => 'string', 'system' => true],
+                ['email', 'type' => 'string'],
+                ['firstname', 'type' => 'string'],
+                ['lastname', 'type' => 'string'],
             ]
         );
-
-        $this->setOrder('ident');
     }
 }

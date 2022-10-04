@@ -15,45 +15,34 @@ abstract class BaseEmail extends Model
 
     //A title: what is this email for
     public string $title = '';
-
     //like title, but more descriptive: What is this email for
     public string $description = '';
 
-    //can it have multiple email templates, e.g. per Activity?
-    public bool $canHaveMultipleTemplates = false;
-
-    public string $emailAddressClassName = EmailAddress::class;
-
     public Model $model;
 
-
     //the template to load to get initial subject and message
-    public string $templateFile;
+    public string $defaultTemplateFile;
     protected HtmlTemplate $messageTemplate;
     protected HtmlTemplate $subjectTemplate;
+    protected bool $addHeaderAndFooter = true;
+    public HtmlTemplate $headerTemplate;
+    public HtmlTemplate $footerTemplate;
+    //can it have multiple email templates, e.g. per Activity?
+    protected bool $canHaveMultipleTemplates = false;
 
     //PHPMailer instance which takes care of the actual sending
     private PHPMailer $phpMailer;
-
-    //HTML header
-    public $header = '';
-
-    //HTML footer
-    public $footer = '';
-
+    protected string $emailAddressClassName = EmailAddress::class;
 
     protected function init(): void
     {
         parent::init();
         $this->addField(
-            'subject'
+            'subject_template'
         );
         $this->addField(
-            'message',
+            'message_template',
             ['type' => 'text']
-        );
-        $this->addField(
-            'attachments', ['type' => 'array', 'serialize' => 'json']
         );
 
         $this->hasOne(
@@ -65,62 +54,54 @@ abstract class BaseEmail extends Model
             ]
         );
 
-        $this->containsMany('email_recipient', [EmailRecipient::class]);
-    }
+        $this->containsMany(EmailRecipient::class, ['model' => EmailRecipient::class]);
+        $this->containsMany(Attachment::class, ['model' => Attachment::class]);
 
-    protected function loadHeaderTemplate()
-    {
-    }
-
-    protected function loadFooterTemplate()
-    {
-    }
-
-    protected function processSubjectTemplatePerRecipient()
-    {
-    }
-
-    protected function processMessageTemplatePerRecipient()
-    {
-    }
-
-    protected function processMessageTemplateOnLoad()
-    {
-    }
-
-    protected function processSubjectTemplateOnLoad()
-    {
-    }
-
-    protected function onSuccessfulSend()
-    {
-    }
-
-
-    /**
-     * loads initial recipients, subject, message and attachments
-     */
-    public function loadInitialValues()
-    {
         $this->loadInitialRecipients();
         $this->loadInitialAttachments();
-        $this->loadInitialTemplate();
+        $this->loadTemplates();
     }
 
-    protected function loadInitialRecipients()
+    protected function loadHeaderTemplate(): void
     {
     }
 
-    protected function loadInitialAttachments()
+    protected function loadFooterTemplate(): void
     {
     }
 
-    protected function loadInitialTemplate()
+    protected function processSubjectTemplatePerRecipient(): void
     {
-        //if Template was already injected, leave as is
-        if ($this->messageTemplate !== null) {
-            return;
-        }
+    }
+
+    protected function processMessageTemplatePerRecipient(): void
+    {
+    }
+
+    protected function processMessageTemplateOnLoad(): void
+    {
+    }
+
+    protected function processSubjectTemplateOnLoad(): void
+    {
+    }
+
+    protected function onSuccessfulSend(): void
+    {
+    }
+
+    //implement in child classes if needed
+    protected function loadInitialRecipients(): void
+    {
+    }
+
+    //implement in child classes if needed
+    protected function loadInitialAttachments(): void
+    {
+    }
+
+    protected function loadTemplates(): void
+    {
         $this->messageTemplate = EmailTemplateLoader::getEmailTemplate($this);
 
         $this->messageTemplate->trySet('recipient_firstname', '{$recipient_firstname}');
@@ -129,9 +110,10 @@ abstract class BaseEmail extends Model
 
         $this->processMessageTemplateOnLoad();
         $this->loadSubjectFromTemplate();
+        $this->processSubjectTemplateOnLoad();
 
-        $this->set('subject', $this->subjectTemplate->renderToHtml());
-        $this->set('message', $this->messageTemplate->renderToHtml());
+        $this->set('subject_template', $this->subjectTemplate->renderToHtml());
+        $this->set('subject_template', $this->messageTemplate->renderToHtml());
     }
 
     protected function loadSubjectFromTemplate(): void
@@ -143,8 +125,6 @@ abstract class BaseEmail extends Model
         } else {
             $this->$this->subjectTemplate = new HtmlTemplate('');
         }
-
-        $this->processSubjectTemplateOnLoad();
     }
 
 
@@ -472,42 +452,5 @@ abstract class BaseEmail extends Model
             return $ea->get('id');
         }
         return null;
-    }
-
-
-    /**
-     * return an instance of each found implementation of BaseEmail in the given folder(s)
-     * parameter array: key is the dir to check for classes, value is the namespace
-     */
-    public function getAllImplementations(array $dirs): array
-    {
-        $result = [];
-
-        foreach ($dirs as $dir => $namespace) {
-            foreach (new DirectoryIterator($dir) as $file) {
-                if ($file->getExtension() !== 'php') {
-                    continue;
-                }
-                $className = $namespace . $file->getBasename('.php');
-                if (!class_exists($className)) {
-                    continue;
-                }
-                try {
-                    $instance = new $className($this->app->db, ['process' => false]);
-                } catch (Throwable $e) {
-                    continue;
-                }
-                if (
-                    !$instance instanceof BaseEmail
-                    || get_class($instance) === BaseEmail::class
-                ) {
-                    continue;
-                }
-
-                $result[$className] = clone $instance;
-            }
-        }
-
-        return $result;
     }
 }

@@ -5,12 +5,14 @@
   "prefer-stable": true,
   "config": {
     "platform": {
-      "php": "7.3"
+      "php": "7.4"
     }
   },
   "require": {
     "philippgrashoff/traitsforatkdata": "2.4.*",
+    "philippgrashoff/secondarymodelforatk": "2.4.*",
     "atk4/data": "2.4.*",
+    "atk4/ui": "2.4.*",
     "phpmailer/phpmailer": ">6",
     "ext-imap": "*"
   },
