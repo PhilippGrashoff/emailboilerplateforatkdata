@@ -3,6 +3,7 @@
 namespace emailboilerplateforatkdata\tests;
 
 use emailboilerplateforatkdata\BaseEmail;
+use emailboilerplateforatkdata\EmailAccount;
 use emailboilerplateforatkdata\EmailTemplate;
 use emailboilerplateforatkdata\tests\testclasses\EventInvitation;
 use emailboilerplateforatkdata\tests\testclasses\ExtendedEmailTemplateHandler;
@@ -13,12 +14,14 @@ class EmailTemplateHandlerTest extends TestCase
 {
     protected $sqlitePersistenceModels = [
         EmailTemplate::class,
-        BaseEmail::class,
+        EmailAccount::class,
+        EventInvitation::class,
     ];
 
     public function testLoadDefaultTemplateFromFile(): void
     {
-        $eventIntivation = new EventInvitation($this->getSqliteTestPersistence(), ['loadInitialValues' => false]);
+        $persistence = $this->getSqliteTestPersistence();
+        $eventIntivation = new EventInvitation($persistence, ['loadInitialValues' => false]);
         $handler = new ExtendedEmailTemplateHandler($eventIntivation);
         $template = $handler->getEmailTemplate();
 

@@ -6,7 +6,7 @@ use Atk4\Data\Model;
 use Atk4\Ui\Form\Control\Dropdown;
 use Atk4\Ui\HtmlTemplate;
 
-class BaseEmail extends Model
+abstract class BaseEmail extends Model
 {
 
     public $table = 'base_email';
@@ -51,14 +51,14 @@ class BaseEmail extends Model
         $this->hasOne(
             'email_account_id',
             [
-                'model' => ['model' => EmailAccount::class],
+                'model' => [EmailAccount::class],
                 'type' => 'integer',
                 'ui' => ['form' => [Dropdown::class, 'empty' => '...']]
             ]
         );
 
-        $this->containsMany(EmailRecipient::class, ['model' => EmailRecipient::class]);
-        $this->containsMany(Attachment::class, ['model' => Attachment::class]);
+        $this->containsMany(EmailRecipient::class, ['model' => [EmailRecipient::class]]);
+        $this->containsMany(Attachment::class, ['model' => [Attachment::class]]);
 
         $className = $this->emailTemplateHandlerClassName;
         $this->emailTemplateHandler = new $className($this);

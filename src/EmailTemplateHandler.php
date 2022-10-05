@@ -21,17 +21,17 @@ class EmailTemplateHandler
     public function getEmailTemplate(): HtmlTemplate
     {
         //try load Template for the individual $baseEmail->model entity
-        $result = self::tryLoadTemplateForEntity();
+        $result = $this->tryLoadTemplateForEntity();
         if ($result) {
             return $result;
         }
         //try load existing Template from persistence
-        $result = self::tryLoadTemplateFromPersistence();
+        $result = $this->tryLoadTemplateFromPersistence();
         if ($result) {
             return $result;
         }
         //load default template from file if other methods did not return anything
-        return self::loadDefaultTemplateFromFile();
+        return $this->loadDefaultTemplateFromFile();
     }
 
     protected function tryLoadTemplateForEntity(): ?HtmlTemplate
@@ -41,7 +41,7 @@ class EmailTemplateHandler
             return null;
         }
 
-        return self::customLoadTemplateForEntity();
+        return $this->customLoadTemplateForEntity();
     }
 
     //overwrite for custom implementations
@@ -66,8 +66,7 @@ class EmailTemplateHandler
     protected function loadDefaultTemplateFromFile(): HtmlTemplate
     {
         //now try to load from file
-        $fileName = self::getTemplateFilePath();
-        var_dump($fileName);
+        $fileName = $this->getTemplateFilePath();
         //throws Exception if file can not be found
         $htmlTemplate = new HtmlTemplate();
         $htmlTemplate->loadFromFile($fileName);
@@ -77,7 +76,7 @@ class EmailTemplateHandler
     protected function loadRawDefaultTemplateFromFile(): string
     {
         //now try to load from file
-        $fileName = self::getTemplateFilePath();
+        $fileName = $this->getTemplateFilePath();
         return file_get_contents($fileName);
     }
 
@@ -91,7 +90,7 @@ class EmailTemplateHandler
      * helper function to add EmailTemplate Entities to persistence. The default template from a file is used.
      * Useful for creating a UI where users can alter the Email Templates and saving the changes to persistence.
      */
-    public function createEmailTemplateEntities(array $dirs, Persistence $persistence): void
+    public static function createEmailTemplateEntities(array $dirs, Persistence $persistence): void
     {
         foreach (self:: getAllBaseEmailImplementations($dirs, $persistence) as $baseEmail) {
             $emailTemplate = new EmailTemplate($persistence);
@@ -110,7 +109,7 @@ class EmailTemplateHandler
      * return an instance of each found implementation of BaseEmail in the given folder(s)
      * parameter array: key is the dir to check for classes, value is the namespace
      */
-    protected function getAllBaseEmailImplementations(array $dirs, Persistence $persistence): array
+    protected static function getAllBaseEmailImplementations(array $dirs, Persistence $persistence): array
     {
         $result = [];
 

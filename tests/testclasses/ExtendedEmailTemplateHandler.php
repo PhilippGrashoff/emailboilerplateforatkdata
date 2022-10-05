@@ -2,14 +2,14 @@
 
 namespace emailboilerplateforatkdata\tests\testclasses;
 
-use emailboilerplateforatkdata\BaseEmail;
 use emailboilerplateforatkdata\EmailTemplateHandler;
 
-class ExtendedEmailTemplateHandler extends EmailTemplateHandler {
+class ExtendedEmailTemplateHandler extends EmailTemplateHandler
+{
 
     //overwrite in custom implementations to easily define where default template files can be found
-    protected  function getTemplateFilePath(): string
+    protected function getTemplateFilePath(): string
     {
-        return dirname(dirname(__DIR__)) . 'testtemplatefiles/' . $this->baseEmail->defaultTemplateFile;
+        return dirname(__DIR__) . '/testtemplatefiles/' . $this->baseEmail->defaultTemplateFile;
     }
 }
