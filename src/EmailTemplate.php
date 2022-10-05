@@ -14,9 +14,11 @@ class EmailTemplate extends SecondaryModel
     {
         parent::init();
 
-        $this->addFields(
+        $this->addField(
+            'ident',
             [
-                ['ident', 'type' => 'string', 'system' => true],
+                'type' => 'string',
+                'system' => true
             ]
         );
 

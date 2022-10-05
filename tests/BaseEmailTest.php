@@ -2,21 +2,11 @@
 
 namespace emailboilerplateforatkdata\tests;
 
-use auditforatk\Audit;
-use notificationforatk\Notification;
-use PMRAtk\App\App;
-use PMRAtk\Data\File;
-use PMRAtk\Data\Email\BaseEmail;
-use PMRAtk\Data\Email\EmailAccount;
-use PMRAtk\Data\Email\EmailTemplate;
-use PMRAtk\Data\Email\PHPMailer;
-use PMRAtk\Data\User;
-use PMRAtk\tests\TestClasses\BaseEmailTestClasses\EditPerRecipientEmail;
-use PMRAtk\tests\TestClasses\BaseEmailTestClasses\SomeBaseEmailImplementation;
-use PMRAtk\tests\phpunit\TestCase;
-use PMRAtk\Data\Email;
-use settingsforatk\Setting;
-use settingsforatk\SettingGroup;
+use emailboilerplateforatkdata\BaseEmail;
+use emailboilerplateforatkdata\EmailAccount;
+use emailboilerplateforatkdata\EmailAddress;
+use emailboilerplateforatkdata\EmailTemplate;
+use traitsforatkdata\TestCase;
 
 
 class BaseEmailTest extends TestCase
@@ -25,16 +15,10 @@ class BaseEmailTest extends TestCase
     private $persistence;
 
     protected $sqlitePersistenceModels = [
-        BaseEmail::class,
         EmailAccount::class,
         EmailTemplate::class,
-        Audit::class,
-        User::class,
-        Email::class,
-        Notification::class,
-        Setting::class,
-        SettingGroup::class,
-        File::class,
+        EmailAddress::class,
+        BaseEmail::class,
     ];
 
     public function setUp(): void

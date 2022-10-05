@@ -5,10 +5,8 @@ namespace emailboilerplateforatkdata;
 use Atk4\Data\Model;
 use Atk4\Ui\Form\Control\Dropdown;
 use Atk4\Ui\HtmlTemplate;
-use DirectoryIterator;
-use ReflectionClass;
 
-abstract class BaseEmail extends Model
+class BaseEmail extends Model
 {
 
     public $table = 'base_email';
@@ -18,10 +16,12 @@ abstract class BaseEmail extends Model
     //like title, but more descriptive: What is this email for
     public string $description = '';
 
-    public Model $model;
+    public ?Model $model = null;
+
+    public bool $loadInitialValues = true;
 
     //the template to load to get initial subject and message
-    public string $defaultTemplateFile;
+    public string $defaultTemplateFile = '';
     protected HtmlTemplate $messageTemplate;
     protected HtmlTemplate $subjectTemplate;
     protected bool $addHeaderAndFooter = true;
@@ -33,6 +33,9 @@ abstract class BaseEmail extends Model
     //PHPMailer instance which takes care of the actual sending
     private PHPMailer $phpMailer;
     protected string $emailAddressClassName = EmailAddress::class;
+
+    protected string $emailTemplateHandlerClassName = EmailTemplateHandler::class;
+    protected EmailTemplateHandler $emailTemplateHandler;
 
     protected function init(): void
     {
@@ -57,9 +60,14 @@ abstract class BaseEmail extends Model
         $this->containsMany(EmailRecipient::class, ['model' => EmailRecipient::class]);
         $this->containsMany(Attachment::class, ['model' => Attachment::class]);
 
-        $this->loadInitialRecipients();
-        $this->loadInitialAttachments();
-        $this->loadTemplates();
+        $className = $this->emailTemplateHandlerClassName;
+        $this->emailTemplateHandler = new $className($this);
+
+        if ($this->loadInitialValues) {
+            $this->loadInitialRecipients();
+            $this->loadInitialAttachments();
+            $this->loadTemplates();
+        }
     }
 
     protected function loadHeaderTemplate(): void
@@ -102,7 +110,7 @@ abstract class BaseEmail extends Model
 
     protected function loadTemplates(): void
     {
-        $this->messageTemplate = EmailTemplateLoader::getEmailTemplate($this);
+        $this->messageTemplate = $this->emailTemplateHandler->getEmailTemplate();
 
         $this->messageTemplate->trySet('recipient_firstname', '{$recipient_firstname}');
         $this->messageTemplate->trySet('recipient_lastname', '{$recipient_lastname}');
@@ -388,55 +396,6 @@ abstract class BaseEmail extends Model
         $this->delete();
 
         return $successful_send;
-    }
-
-
-    /*
-     * used for email template editing. Returns an array of all fields available for the Model:
-     * [
-     *     'field_name' => 'field_caption'
-     * ]
-     */
-    public function getModelVars(Model $m, string $prefix = ''): array
-    {
-        $fields = [];
-        if (method_exists($m, 'getFieldsForEmailTemplate')) {
-            $field_names = $m->getFieldsForEmailTemplate();
-            foreach ($field_names as $field_name) {
-                $fields[$prefix . $field_name] = $m->getField($field_name)->getCaption();
-            }
-
-            return $fields;
-        }
-
-        foreach ($m->getFields() as $field_name => $field) {
-            if (
-                !$field->system
-                && in_array($field->type, ['string', 'text', 'integer', 'float', 'date', 'time'])
-            ) {
-                $fields[$prefix . $field_name] = $field->getCaption();
-            }
-        }
-
-        return $fields;
-    }
-
-
-    /*
-     * Used by template editing modal
-     */
-    public function getTemplateEditVars(): array
-    {
-        return [
-            $this->model->getModelCaption() => $this->getModelVars(
-                $this->model,
-                strtolower(
-                    (new ReflectionClass(
-                        $this->model
-                    ))->getShortName()
-                ) . '_'
-            )
-        ];
     }
 
 

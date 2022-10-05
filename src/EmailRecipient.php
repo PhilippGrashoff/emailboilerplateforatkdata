@@ -9,16 +9,11 @@ class EmailRecipient extends SecondaryModel
 
     public $table = 'email_recipient';
 
-
     protected function init(): void
     {
         parent::init();
-        $this->addFields(
-            [
-                ['email', 'type' => 'string'],
-                ['firstname', 'type' => 'string'],
-                ['lastname', 'type' => 'string'],
-            ]
-        );
+        $this->addField('email_address');
+        $this->addField('firstname');
+        $this->addField('lastname');
     }
 }
