@@ -15,5 +15,7 @@ class Location extends Model
 
         $this->addField('name');
         $this->addField('address', ['type' => 'text']);
+
+        $this->hasMany(Event::class);
     }
 }

@@ -1,8 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\testclasses;
+namespace emailboilerplateforatkdata\tests\emailimplementations;
 
 use emailboilerplateforatkdata\BaseEmail;
+use emailboilerplateforatkdata\tests\testclasses\Event;
 
 class EventInvitation extends BaseEmail
 {
@@ -10,7 +11,7 @@ class EventInvitation extends BaseEmail
 
     protected string $modelClassName = Event::class;
 
-    protected string $emailTemplateHandlerClassName = ExtendedEmailTemplateHandler::class;
+    protected string $emailTemplateHandlerClassName = LocationEmailTemplateHandler::class;
 
     protected function processMessageTemplateOnLoad(): void
     {

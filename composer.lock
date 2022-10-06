@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "13f61480ae55cae6fc71efeef3d2390b",
+    "content-hash": "89a09b0aea07ee70d8333212646fb098",
     "packages": [
         {
             "name": "atk4/core",
@@ -1728,6 +1728,40 @@
                 "source": "https://github.com/phar-io/version/tree/3.2.1"
             },
             "time": "2022-02-21T01:04:05+00:00"
+        },
+        {
+            "name": "philippgrashoff/atkuiextendedtemplate",
+            "version": "2.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PhilippGrashoff/atkuiextendedtemplate.git",
+                "reference": "a1bc5790cc2d77bc46384104313a8d825fec7d20"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PhilippGrashoff/atkuiextendedtemplate/zipball/a1bc5790cc2d77bc46384104313a8d825fec7d20",
+                "reference": "a1bc5790cc2d77bc46384104313a8d825fec7d20",
+                "shasum": ""
+            },
+            "require": {
+                "atk4/ui": "2.4.*"
+            },
+            "require-dev": {
+                "philippgrashoff/traitsforatkdata": "2.4.*",
+                "phpunit/phpunit": ">8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "atkuiextendedtemplate\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "support": {
+                "issues": "https://github.com/PhilippGrashoff/atkuiextendedtemplate/issues",
+                "source": "https://github.com/PhilippGrashoff/atkuiextendedtemplate/tree/2.4.0"
+            },
+            "time": "2022-08-31T07:41:14+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

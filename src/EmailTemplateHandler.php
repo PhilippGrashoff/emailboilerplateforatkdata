@@ -12,8 +12,9 @@ class EmailTemplateHandler
 {
 
     protected BaseEmail $baseEmail;
+    protected string $htmlTemplateClass = HtmlTemplate::class;
 
-    public function __construct(BaseEmail $baseEmail)
+    public function __construct(BaseEmail $baseEmail = null)
     {
         $this->baseEmail = $baseEmail;
     }
@@ -59,7 +60,7 @@ class EmailTemplateHandler
         if (!$emailTemplate->loaded()) {
             return null;
         }
-        $htmlTemplate = new HtmlTemplate($emailTemplate->get('value'));
+        $htmlTemplate = new $this->htmlTemplateClass($emailTemplate->get('value'));
         return $htmlTemplate;
     }
 
@@ -68,7 +69,7 @@ class EmailTemplateHandler
         //now try to load from file
         $fileName = $this->getTemplateFilePath();
         //throws Exception if file can not be found
-        $htmlTemplate = new HtmlTemplate();
+        $htmlTemplate = new $this->htmlTemplateClass();
         $htmlTemplate->loadFromFile($fileName);
         return $htmlTemplate;
     }
@@ -137,51 +138,4 @@ class EmailTemplateHandler
 
         return $result;
     }
-
-    /**
-     * used for email template editing. Returns an array of all fields available for the Model:
-     * ['field_name_1' => 'field_caption', 'field_name_2 => 'field_caption']
-     */
-    public function getModelVars(Model $m, string $prefix = ''): array
-    {
-        $fields = [];
-        if (method_exists($m, 'getFieldsForEmailTemplate')) {
-            $field_names = $m->getFieldsForEmailTemplate();
-            foreach ($field_names as $field_name) {
-                $fields[$prefix . $field_name] = $m->getField($field_name)->getCaption();
-            }
-
-            return $fields;
-        }
-
-        foreach ($m->getFields() as $field_name => $field) {
-            if (
-                !$field->system
-                && in_array($field->type, ['string', 'text', 'integer', 'float', 'date', 'time'])
-            ) {
-                $fields[$prefix . $field_name] = $field->getCaption();
-            }
-        }
-
-        return $fields;
-    }
-
-
-    /**
-     * Used by template editing modal
-     */
-    public function getTemplateEditVars(): array
-    {
-        return [
-            $this->model->getModelCaption() => $this->getModelVars(
-                $this->model,
-                strtolower(
-                    (new ReflectionClass(
-                        $this->model
-                    ))->getShortName()
-                ) . '_'
-            )
-        ];
-    }
-
 }

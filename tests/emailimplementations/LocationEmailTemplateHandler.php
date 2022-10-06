@@ -1,20 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\testclasses;
+namespace emailboilerplateforatkdata\tests\emailimplementations;
 
 use Atk4\Ui\HtmlTemplate;
 use emailboilerplateforatkdata\EmailTemplate;
-use emailboilerplateforatkdata\EmailTemplateHandler;
+use emailboilerplateforatkdata\tests\testclasses\Location;
 
-class ExtendedEmailTemplateHandler extends EmailTemplateHandler
+class LocationEmailTemplateHandler extends DefaultEmailTemplateHandler
 {
-
-    //overwrite in custom implementations to easily define where default template files can be found
-    protected function getTemplateFilePath(): string
-    {
-        return dirname(__DIR__) . '/testtemplatefiles/' . $this->baseEmail->defaultTemplateFile;
-    }
-
     //we check if the a custom template for the location of an event is in database
     protected function customLoadTemplateForEntity(): ?HtmlTemplate
     {
@@ -28,7 +21,7 @@ class ExtendedEmailTemplateHandler extends EmailTemplateHandler
         if (!$emailTemplate->loaded()) {
             return null;
         }
-        $htmlTemplate = new HtmlTemplate($emailTemplate->get('value'));
+        $htmlTemplate = new $this->htmlTemplateClass($emailTemplate->get('value'));
         return $htmlTemplate;
     }
 

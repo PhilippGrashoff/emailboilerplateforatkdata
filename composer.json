@@ -17,7 +17,8 @@
     "ext-imap": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": ">8"
+    "phpunit/phpunit": ">8",
+    "philippgrashoff/atkuiextendedtemplate": "2.4.*"
   },
   "autoload": {
     "psr-4": {
