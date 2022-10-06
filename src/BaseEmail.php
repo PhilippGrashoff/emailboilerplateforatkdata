@@ -2,6 +2,7 @@
 
 namespace emailboilerplateforatkdata;
 
+use Atk4\Data\Exception;
 use Atk4\Data\Model;
 use Atk4\Ui\Form\Control\Dropdown;
 use Atk4\Ui\HtmlTemplate;
@@ -16,9 +17,9 @@ abstract class BaseEmail extends Model
     //like title, but more descriptive: What is this email for
     public string $description = '';
 
-    public ?Model $model = null;
-
-    public bool $loadInitialValues = true;
+    protected string $modelClassName = '';
+    protected $entityId = null;
+    public ?Model $entity = null;
 
     //the template to load to get initial subject and message
     public string $defaultTemplateFile = '';
@@ -62,12 +63,14 @@ abstract class BaseEmail extends Model
 
         $className = $this->emailTemplateHandlerClassName;
         $this->emailTemplateHandler = new $className($this);
+    }
 
-        if ($this->loadInitialValues) {
-            $this->loadInitialRecipients();
-            $this->loadInitialAttachments();
-            $this->loadTemplates();
-        }
+    protected function loadInitialValues()
+    {
+        $this->setModel();
+        $this->loadInitialRecipients();
+        $this->loadInitialAttachments();
+        $this->loadTemplates();
     }
 
     protected function loadHeaderTemplate(): void
@@ -135,6 +138,20 @@ abstract class BaseEmail extends Model
         }
     }
 
+    protected function setModel(): void
+    {
+        if ($this->entity && $this->entity->loaded()) {
+            return;
+        }
+
+        if ($this->entityId) {
+            $this->entity = new $this->modelClassName($this->persistence);
+            $this->entity->load($this->entityId);
+            return;
+        }
+
+        throw new Exception('Either a loaded model or an ID to load needs to be passed to ' . __FUNCTION__);
+    }
 
     /*
      * adds an object to recipients array.
