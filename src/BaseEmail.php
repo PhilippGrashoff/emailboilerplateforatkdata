@@ -65,7 +65,7 @@ abstract class BaseEmail extends Model
         $this->emailTemplateHandler = new $className($this);
     }
 
-    protected function loadInitialValues()
+    public function loadInitialValues()
     {
         $this->setModel();
         $this->loadInitialRecipients();
@@ -124,7 +124,7 @@ abstract class BaseEmail extends Model
         $this->processSubjectTemplateOnLoad();
 
         $this->set('subject_template', $this->subjectTemplate->renderToHtml());
-        $this->set('subject_template', $this->messageTemplate->renderToHtml());
+        $this->set('message_template', $this->messageTemplate->renderToHtml());
     }
 
     protected function loadSubjectFromTemplate(): void

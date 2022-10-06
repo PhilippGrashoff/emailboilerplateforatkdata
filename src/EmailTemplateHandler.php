@@ -37,7 +37,7 @@ class EmailTemplateHandler
     protected function tryLoadTemplateForEntity(): ?HtmlTemplate
     {
         //no model or not loaded?
-        if (!$this->baseEmail->model || !$this->baseEmail->model->loaded()) {
+        if (!$this->baseEmail->entity || !$this->baseEmail->entity->loaded()) {
             return null;
         }
 
