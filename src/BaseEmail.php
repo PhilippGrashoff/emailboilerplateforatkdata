@@ -35,8 +35,8 @@ abstract class BaseEmail extends Model
     private PHPMailer $phpMailer;
     protected string $emailAddressClassName = EmailAddress::class;
 
-    protected string $emailTemplateHandlerClassName = EmailTemplateHandler::class;
-    protected EmailTemplateHandler $emailTemplateHandler;
+    protected string $emailTemplateHandlerClassName = BaseEmailTemplateHandler::class;
+    protected BaseEmailTemplateHandler $emailTemplateHandler;
 
     protected function init(): void
     {

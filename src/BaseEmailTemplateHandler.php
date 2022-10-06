@@ -2,13 +2,13 @@
 
 namespace emailboilerplateforatkdata;
 
-use Atk4\Data\Model;
 use Atk4\Data\Persistence;
 use Atk4\Ui\HtmlTemplate;
 use DirectoryIterator;
 use Throwable;
 
-class EmailTemplateHandler
+
+abstract class BaseEmailTemplateHandler
 {
 
     protected BaseEmail $baseEmail;
@@ -16,7 +16,9 @@ class EmailTemplateHandler
 
     public function __construct(BaseEmail $baseEmail = null)
     {
-        $this->baseEmail = $baseEmail;
+        if ($baseEmail) {
+            $this->baseEmail = $baseEmail;
+        }
     }
 
     public function getEmailTemplate(): HtmlTemplate
@@ -91,16 +93,17 @@ class EmailTemplateHandler
      * helper function to add EmailTemplate Entities to persistence. The default template from a file is used.
      * Useful for creating a UI where users can alter the Email Templates and saving the changes to persistence.
      */
-    public static function createEmailTemplateEntities(array $dirs, Persistence $persistence): void
+    public function createEmailTemplateEntities(string $directory, Persistence $persistence): void
     {
-        foreach (self:: getAllBaseEmailImplementations($dirs, $persistence) as $baseEmail) {
+        foreach (self:: getAllBaseEmailImplementations($directory, $persistence) as $baseEmail) {
+            $this->baseEmail = $baseEmail;
             $emailTemplate = new EmailTemplate($persistence);
             $emailTemplate->addCondition('model_class', null);
             $emailTemplate->addCondition('model_id', null);
-            $emailTemplate->tryLoadBy('ident', (new \ReflectionClass($baseEmail))->getName());
+            $emailTemplate->tryLoadBy('ident', (new \ReflectionClass($this->baseEmail))->getName());
             if (!$emailTemplate->loaded()) {
-                $emailTemplate->set('ident', $baseEmail->template);
-                $emailTemplate->set('value', self::loadRawDefaultTemplateFromFile($baseEmail));
+                $emailTemplate->set('ident', (new \ReflectionClass($this->baseEmail))->getName());
+                $emailTemplate->set('value', $this->loadRawDefaultTemplateFromFile());
                 $emailTemplate->save();
             }
         }
@@ -110,32 +113,53 @@ class EmailTemplateHandler
      * return an instance of each found implementation of BaseEmail in the given folder(s)
      * parameter array: key is the dir to check for classes, value is the namespace
      */
-    protected static function getAllBaseEmailImplementations(array $dirs, Persistence $persistence): array
+    protected function getAllBaseEmailImplementations(string $directory, Persistence $persistence): array
     {
         $result = [];
-
-        foreach ($dirs as $dir => $namespace) {
-            foreach (new DirectoryIterator($dir) as $file) {
-                if ($file->getExtension() !== 'php') {
-                    continue;
-                }
-                $className = $namespace . $file->getBasename('.php');
-                if (!class_exists($className)) {
-                    continue;
-                }
-                try {
-                    $instance = new $className($persistence);
-                } catch (Throwable $e) {
-                    continue;
-                }
-                if (!$instance instanceof BaseEmail) {
-                    continue;
-                }
-
-                $result[$className] = clone $instance;
+        foreach ((new DirectoryIterator($directory)) as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
             }
+            $className = $this->getNameSpaceFromFile($file) . '\\' . $file->getBasename('.php');
+            if (!class_exists($className)) {
+                continue;
+            }
+            try {
+                $instance = new $className($persistence);
+            } catch (Throwable $e) {
+                continue;
+            }
+            if (!$instance instanceof BaseEmail) {
+                continue;
+            }
+            $result[$className] = clone $instance;
         }
 
         return $result;
+    }
+
+    protected function getNameSpaceFromFile(DirectoryIterator $file): string
+    {
+        $phpCode = file_get_contents($file->getPathname());
+        $tokens = token_get_all($phpCode);
+        $count = count($tokens);
+        $i = 0;
+        $namespace = '';
+        while ($i < $count) {
+            $token = $tokens[$i];
+            if (is_array($token) && $token[0] === T_NAMESPACE) {
+                // Found namespace declaration
+                while (++$i < $count) {
+                    if ($tokens[$i] === ';') {
+                        break;
+                    }
+                    $namespace .= is_array($tokens[$i]) ? $tokens[$i][1] : $tokens[$i];
+                }
+                break;
+            }
+            $i++;
+        }
+
+        return trim($namespace);
     }
 }

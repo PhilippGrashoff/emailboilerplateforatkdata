@@ -3,8 +3,10 @@
 namespace emailboilerplateforatkdata\tests;
 
 use Atk4\Data\Persistence;
+use atkuiextendedtemplate\ExtendedHtmlTemplate;
 use emailboilerplateforatkdata\EmailAccount;
 use emailboilerplateforatkdata\EmailTemplate;
+use emailboilerplateforatkdata\tests\emailimplementations\DefaultEmailTemplateHandler;
 use emailboilerplateforatkdata\tests\emailimplementations\EventInvitation;
 use emailboilerplateforatkdata\tests\testclasses\Event;
 use emailboilerplateforatkdata\tests\testclasses\Location;
@@ -12,7 +14,7 @@ use emailboilerplateforatkdata\tests\testclasses\TestDataResult;
 use traitsforatkdata\TestCase;
 
 
-class EmailTemplateHandlerTest extends TestCase
+class BaseEmailTemplateHandlerTest extends TestCase
 {
     protected Persistence $persistence;
 
@@ -113,6 +115,31 @@ class EmailTemplateHandlerTest extends TestCase
         );
     }
 
+    public function testCustomHtmlTemplateClassIsUsed(): void
+    {
+        $testData = $this->setupTestEventsAndLocations();
+        $eventInvitation = new EventInvitation($this->persistence, ['entity' => $testData->event1]);
+        $handler = new DefaultEmailTemplateHandler($eventInvitation);
+        $template = $handler->getEmailTemplate();
+        self::assertInstanceOf(ExtendedHtmlTemplate::class, $template);
+    }
+
+    public function testCreateEmailTemplateRecords(): void
+    {
+        self::assertSame(
+            0,
+            (int)(new EmailTemplate($this->persistence))->action('count')->getOne()
+        );
+        $handler = new DefaultEmailTemplateHandler();
+        $handler->createEmailTemplateEntities(
+            __DIR__ . '/emailimplementations',
+            $this->persistence
+        );
+        self::assertSame(
+            2,
+            (int)(new EmailTemplate($this->persistence))->action('count')->getOne()
+        );
+    }
 
     protected function setupTestEventsAndLocations(): TestDataResult
     {

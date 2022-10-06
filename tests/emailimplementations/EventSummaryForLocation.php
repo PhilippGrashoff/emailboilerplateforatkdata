@@ -23,8 +23,9 @@ class EventSummaryForLocation extends BaseEmail
             return;
         }
         $this->messageTemplate->set('location_name', $this->entity->get('name'));
-        foreach($this->entity->ref(Event::class) as $event) {
-            $this->eventSubTemplate->setTagsFromModel($this->entity, [],'event_'); //Method of custom HtmlTemplate class
+        foreach ($this->entity->ref(Event::class) as $event) {
+            //Method of custom HtmlTemplate class
+            $this->eventSubTemplate->setTagsFromModel($this->entity, [], 'event_');
             $this->messageTemplate->dangerouslyAppendHtml('Event', $this->eventSubTemplate->renderToHtml());
         }
     }

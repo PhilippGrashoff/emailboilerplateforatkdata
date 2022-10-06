@@ -5,10 +5,10 @@ namespace emailboilerplateforatkdata\tests\emailimplementations;
 use Atk4\Ui\HtmlTemplate;
 use atkuiextendedtemplate\ExtendedHtmlTemplate;
 use emailboilerplateforatkdata\EmailTemplate;
-use emailboilerplateforatkdata\EmailTemplateHandler;
+use emailboilerplateforatkdata\BaseEmailTemplateHandler;
 use emailboilerplateforatkdata\tests\testclasses\Location;
 
-class DefaultEmailTemplateHandler extends EmailTemplateHandler
+class DefaultEmailTemplateHandler extends BaseEmailTemplateHandler
 {
 
     protected string $htmlTemplateClass = ExtendedHtmlTemplate::class;

@@ -8,9 +8,7 @@ use emailboilerplateforatkdata\tests\testclasses\Event;
 class EventInvitation extends BaseEmail
 {
     public string $defaultTemplateFile = 'event_invitation.html';
-
     protected string $modelClassName = Event::class;
-
     protected string $emailTemplateHandlerClassName = LocationEmailTemplateHandler::class;
 
     protected function processMessageTemplateOnLoad(): void
