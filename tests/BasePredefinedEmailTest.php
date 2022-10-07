@@ -2,6 +2,7 @@
 
 namespace emailboilerplateforatkdata\tests;
 
+use emailboilerplateforatkdata\Attachment;
 use emailboilerplateforatkdata\BasePredefinedEmail;
 use emailboilerplateforatkdata\EmailAccount;
 use emailboilerplateforatkdata\EmailRecipient;
@@ -27,23 +28,6 @@ class BasePredefinedEmailTest extends TestCase
         parent::setUp();
         $this->persistence = $this->getSqliteTestPersistence();
         //$this->_addStandardEmailAccount($this->persistence);
-    }
-
-    public function testAddRecipient()
-    {
-        $email = new EventSummaryForLocation($this->persistence);
-        $email->save();
-
-        $email->addRecipient('somefake@email.de', 'Max', 'Mustermann');
-        self::assertSame(
-            1,
-            (int)$email->ref(EmailRecipient::class)->action('count')->getOne()
-        );
-        $email->addRecipient('someotherfake@email.de', 'Marina', 'Musterfrau');
-        self::assertSame(
-            2,
-            (int)$email->ref(EmailRecipient::class)->action('count')->getOne()
-        );
     }
 
     public function testAddRecipientOnlyAddSameEmailAddressOnce()
@@ -72,6 +56,68 @@ class BasePredefinedEmailTest extends TestCase
         $email->addRecipient('someinvalid@email', 'Max', 'Mustermann');
     }
 
+    public function testAddAndRemoveRecipient(): void
+    {
+        $email = new EventSummaryForLocation($this->persistence);
+        $email->save();
+
+        $recipient1 = $email->addRecipient('somefake@email.de', 'Max', 'Mustermann');
+        $recipient2 = $email->addRecipient('someotherfake@email.de', 'Marina', 'Musterfrau');
+        self::assertSame(
+            2,
+            (int)$email->ref(EmailRecipient::class)->action('count')->getOne()
+        );
+
+        $email->removeRecipient($recipient1->getId());
+        self::assertSame(
+            1,
+            (int)$email->ref(EmailRecipient::class)->action('count')->getOne()
+        );
+
+        $email->removeRecipient($recipient2->getId());
+        self::assertSame(
+            0,
+            (int)$email->ref(EmailRecipient::class)->action('count')->getOne()
+        );
+    }
+
+    public function testAddSameAttachmentOnlyOnce(): void
+    {
+        $email = new EventSummaryForLocation($this->persistence);
+        $email->save();
+
+        $email->addAttachment(__DIR__ . '/testtemplatefiles/event_invitation.html');
+        $email->addAttachment(__DIR__ . '/testtemplatefiles/event_invitation.html');
+        self::assertSame(
+            1,
+            (int)$email->ref(Attachment::class)->action('count')->getOne()
+        );
+    }
+
+    public function testAddAndRemoveAttachment(): void
+    {
+        $email = new EventSummaryForLocation($this->persistence);
+        $email->save();
+
+        $attachment1 = $email->addAttachment(__DIR__ . '/testtemplatefiles/event_invitation.html');
+        $attachment2 = $email->addAttachment(__DIR__ . '/testtemplatefiles/event_summary_for_location.html');
+        self::assertSame(
+            2,
+            (int)$email->ref(Attachment::class)->action('count')->getOne()
+        );
+
+        $email->removeAttachment($attachment1->getId());
+        self::assertSame(
+            1,
+            (int)$email->ref(Attachment::class)->action('count')->getOne()
+        );
+
+        $email->removeAttachment($attachment2->getId());
+        self::assertSame(
+            0,
+            (int)$email->ref(Attachment::class)->action('count')->getOne()
+        );
+    }
 
     public function testSMTPKeepAlive()
     {

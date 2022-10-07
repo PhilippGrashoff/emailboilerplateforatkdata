@@ -60,11 +60,14 @@ class PHPMailer extends \PHPMailer\PHPMailer\PHPMailer
 
     protected function _setEmailAccount(): void
     {
-        if ($this->emailAccount instanceof EmailAccount
-            && $this->emailAccount->loaded()) {
+        if (
+            $this->emailAccount instanceof EmailAccount
+            && $this->emailAccount->loaded()
+        ) {
             $this->_copySettingsFromEmailAccount();
             return;
-        } //maybe just the ID of the emailaccount was passed?
+        }
+        //maybe just the ID of the emailaccount was passed?
         elseif (is_scalar($this->emailAccount)) {
             $val = $this->emailAccount;
             $this->emailAccount = new EmailAccount($this->app->db, ['enableInternalAccounts' => true]);
