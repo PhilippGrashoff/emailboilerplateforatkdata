@@ -141,6 +141,18 @@ class BaseEmailTemplateHandlerTest extends TestCase
         );
     }
 
+    public function testUseHeaderAndFooterFromFile(): void
+    {
+    }
+
+    public function testUseHeaderAndFooterFromPersistence(): void
+    {
+    }
+
+    public function testDoNotAddHeaderAndFootrer(): void
+    {
+    }
+
     protected function setupTestEventsAndLocations(): TestDataResult
     {
         $testDataResult = new TestDataResult();

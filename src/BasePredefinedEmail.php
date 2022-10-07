@@ -34,7 +34,6 @@ abstract class BasePredefinedEmail extends Model
 
     //PHPMailer instance which takes care of the actual sending
     private PHPMailer $phpMailer;
-    protected string $emailAddressClassName = EmailAddress::class;
 
     protected string $emailTemplateHandlerClassName = BaseEmailTemplateHandler::class;
     protected BaseEmailTemplateHandler $emailTemplateHandler;
@@ -123,11 +122,17 @@ abstract class BasePredefinedEmail extends Model
             throw new UserException('The email address ' . $emailAddress . ' is not a valid.');
         }
         $emailRecipient = $this->ref(EmailRecipient::class);
+        //some bug in ContainsMany. Switch this in-performant code to tryLoadBy() instead of iterating all with atk 3.x
+        foreach ($emailRecipient as $er) {
+            if ($er->get('email_address') === $emailAddress) {
+                return $er;
+            }
+        }
+
         $emailRecipient->set('email_address', $emailAddress);
         $emailRecipient->set('firstname', $firstname);
         $emailRecipient->set('lastname', $lastname);
         $emailRecipient->save();
-
         return $emailRecipient;
     }
 
@@ -146,6 +151,12 @@ abstract class BasePredefinedEmail extends Model
     public function addAttachment(string $filePath): Attachment
     {
         $attachment = $this->ref(Attachment::class);
+        //some bug in ContainsMany. Switch this in-performant code to tryLoadBy() instead of iterating all with atk 3.x
+        foreach ($attachment as $a) {
+            if ($a->get('file_path') === $filePath) {
+                return $a;
+            }
+        }
         $attachment->set('file_path', $filePath);
         $attachment->save();
 

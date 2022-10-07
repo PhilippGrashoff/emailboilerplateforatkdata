@@ -13,6 +13,5 @@ class Attachment extends SecondaryModel
     {
         parent::init();
         $this->addField('file_path');
-        $this->addField('file_name');
     }
 }
