@@ -6,11 +6,12 @@ use Atk4\Data\Exception;
 use Atk4\Data\Model;
 use Atk4\Ui\Form\Control\Dropdown;
 use Atk4\Ui\HtmlTemplate;
+use traitsforatkdata\UserException;
 
-abstract class BaseEmail extends Model
+abstract class BasePredefinedEmail extends Model
 {
 
-    public $table = 'base_email';
+    public $table = 'predefined_email';
 
     //A title: what is this email for
     public string $title = '';
@@ -73,44 +74,6 @@ abstract class BaseEmail extends Model
         $this->loadTemplates();
     }
 
-    protected function loadHeaderTemplate(): void
-    {
-    }
-
-    protected function loadFooterTemplate(): void
-    {
-    }
-
-    protected function processSubjectTemplatePerRecipient(): void
-    {
-    }
-
-    protected function processMessageTemplatePerRecipient(): void
-    {
-    }
-
-    protected function processMessageTemplateOnLoad(): void
-    {
-    }
-
-    protected function processSubjectTemplateOnLoad(): void
-    {
-    }
-
-    protected function onSuccessfulSend(): void
-    {
-    }
-
-    //implement in child classes if needed
-    protected function loadInitialRecipients(): void
-    {
-    }
-
-    //implement in child classes if needed
-    protected function loadInitialAttachments(): void
-    {
-    }
-
     protected function loadTemplates(): void
     {
         $this->messageTemplate = $this->emailTemplateHandler->getEmailTemplate();
@@ -153,123 +116,47 @@ abstract class BaseEmail extends Model
         throw new Exception('Either a loaded model or an ID to load needs to be passed to ' . __FUNCTION__);
     }
 
-    /*
-     * adds an object to recipients array.
-     *
-     * @param mixed class      Either a class, a classname or an email address to add
-     * @param int   email_id   Try to load the email with this id if set
-     *
-     * @return bool            True if something was added, false otherwise
-     */
-    public function addRecipient($class, $email_id = null)
+    public function addRecipient(string $emailAddress, string $firstname = '', string $lastname = ''): EmailRecipient
     {
-        $r = null;
-
-        //object passed: get Email from Email Ref
-        if ($class instanceof Model && $class->loaded()) {
-            if ($email_id === null) {
-                $r = $this->_addRecipientObject($class);
-            } elseif ($email_id) {
-                $r = $this->_addRecipientObject($class, $email_id);
-            }
-        } //id passed: ID of Email Address, load from there
-        elseif (is_numeric($class)) {
-            $r = $this->_addRecipientByEmailId(intval($class));
-        } //else assume its email as string, not belonging to a stored model
-        elseif (is_string($class) && filter_var($class, FILTER_VALIDATE_EMAIL)) {
-            $r = $this->ref('email_recipient');
-            $r->set('email', $class);
+        $emailAddress = trim($emailAddress);
+        if (!filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) {
+            throw new UserException('The email address ' . $emailAddress . ' is not a valid.');
         }
+        $emailRecipient = $this->ref(EmailRecipient::class);
+        $emailRecipient->set('email_address', $emailAddress);
+        $emailRecipient->set('firstname', $firstname);
+        $emailRecipient->set('lastname', $lastname);
+        $emailRecipient->save();
 
-        if (!$r instanceof EmailRecipient) {
-            return false;
-        }
-
-        //if $this is not saved yet do so, so we can use $this->id for recipient
-        if (!$this->get('id')) {
-            $this->save();
-        }
-
-        //if email already exists, skip
-        foreach ($this->ref('email_recipient') as $rec) {
-            if ($rec->get('email') == $r->get('email')) {
-                return false;
-            }
-        }
-
-        $r->save();
-
-        return true;
+        return $emailRecipient;
     }
 
-
-    /*
-     * loads model_class, model_id, firstname and lastname from a passed object
-     * returns an EmailRecipient object
-     */
-    protected function _addRecipientObject(Model $object, $email_id = null): ?EmailRecipient
-    {
-        $r = $this->ref('email_recipient');
-        //set firstname and lastname if available
-        $r->set('firstname', $object->hasField('firstname') ? $object->get('firstname') : '');
-        $r->set('lastname', $object->hasField('lastname') ? $object->get('lastname') : '');
-        $r->set('model_class', get_class($object));
-        $r->set('model_id', $object->get($object->id_field));
-
-        //go for first email if no email_id was specified
-        if (
-            $email_id == null
-            && method_exists($object, 'getFirstSecondaryModelRecord')
-        ) {
-            $emailObject = $object->getFirstSecondaryModelRecord($this->emailAddressClassName);
-            if (
-                $emailObject
-                && filter_var($emailObject->get('value'), FILTER_VALIDATE_EMAIL)
-            ) {
-                $r->set('email', $emailObject->get('value'));
-                return clone $r;
-            }
-        } //else go for specified email id
-        elseif ($email_id) {
-            $emailObject = new $this->emailAddressClassName($this->persistence);
-            $emailObject->tryLoad($email_id);
-            if ($emailObject->loaded()) {
-                $r->set('email', $emailObject->get('value'));
-                return clone $r;
-            }
-        }
-
-        return null;
-    }
-
-
-    /*
-     * add a recipient by a specified Email id
-     */
-    protected function _addRecipientByEmailId(int $id): ?EmailRecipient
-    {
-        $e = new Email($this->persistence);
-        $e->tryLoad($id);
-        if (!$e->loaded()) {
-            return null;
-        }
-
-        if ($parent = $e->getParentObject()) {
-            return $this->_addRecipientObject($parent);
-        }
-
-        return null;
-    }
-
-
-    /*
-     * Removes an object from recipient array
-     */
     public function removeRecipient($id): bool
     {
-        foreach ($this->ref('email_recipient') as $r) {
-            if ($r->get('id') == $id) {
-                $r->delete();
+        foreach ($this->ref(EmailRecipient::class) as $emailRecipient) {
+            if ($emailRecipient->getId() == $id) {
+                $emailRecipient->delete();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function addAttachment(string $filePath): Attachment
+    {
+        $attachment = $this->ref(Attachment::class);
+        $attachment->set('file_path', $filePath);
+        $attachment->save();
+
+        return $attachment;
+    }
+
+    public function removeAttachment($id): bool
+    {
+        foreach ($this->ref(Attachment::class) as $emailRecipient) {
+            if ($emailRecipient->getId() == $id) {
+                $emailRecipient->delete();
                 return true;
             }
         }
@@ -278,36 +165,7 @@ abstract class BaseEmail extends Model
     }
 
 
-    /*
-     *  adds a file object to the attachment array.
-     *
-     * @param object
-     */
-    public function addAttachment($id)
-    {
-        $a = $this->get('attachments');
-        $a[] = $id;
-        $this->set('attachments', $a);
-    }
-
-
-    /*
-     * removes an attachment from the attachment array
-     *
-     * @param int
-     */
-    public function removeAttachment($id)
-    {
-        $a = $this->get('attachments');
-        if (in_array($id, $a)) {
-            unset($a[array_search($id, $a)]);
-        }
-
-        $this->set('attachments', $a);
-    }
-
-
-    /*
+    /**
      * sends the message to each recipient in the list
      *
      * @return bool   true if at least one send was successful, false otherwise
@@ -415,7 +273,6 @@ abstract class BaseEmail extends Model
         return $successful_send;
     }
 
-
     /**
      * can be implemented in descendants. Can be used to set a standard Email Account to send from when more than one is available
      */
@@ -428,5 +285,45 @@ abstract class BaseEmail extends Model
             return $ea->get('id');
         }
         return null;
+    }
+
+    /**
+     * The following methods can be implemented in child classes to create a custom behaviour.
+     * Check the test files for sample usages.
+     */
+    protected function loadHeaderTemplate(): void
+    {
+    }
+
+    protected function loadFooterTemplate(): void
+    {
+    }
+
+    protected function processSubjectTemplatePerRecipient(): void
+    {
+    }
+
+    protected function processMessageTemplatePerRecipient(): void
+    {
+    }
+
+    protected function processMessageTemplateOnLoad(): void
+    {
+    }
+
+    protected function processSubjectTemplateOnLoad(): void
+    {
+    }
+
+    protected function onSuccessfulSend(): void
+    {
+    }
+
+    protected function loadInitialRecipients(): void
+    {
+    }
+
+    protected function loadInitialAttachments(): void
+    {
     }
 }

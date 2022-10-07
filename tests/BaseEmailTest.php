@@ -2,7 +2,7 @@
 
 namespace emailboilerplateforatkdata\tests;
 
-use emailboilerplateforatkdata\BaseEmail;
+use emailboilerplateforatkdata\BasePredefinedEmail;
 use emailboilerplateforatkdata\EmailAccount;
 use emailboilerplateforatkdata\EmailAddress;
 use emailboilerplateforatkdata\EmailTemplate;
@@ -18,7 +18,7 @@ class BaseEmailTest extends TestCase
         EmailAccount::class,
         EmailTemplate::class,
         EmailAddress::class,
-        BaseEmail::class,
+        BasePredefinedEmail::class,
     ];
 
     public function setUp(): void
@@ -33,7 +33,7 @@ class BaseEmailTest extends TestCase
 
     public function testAddRecipient()
     {
-        $base_email = new BaseEmail($this->persistence);
+        $base_email = new BasePredefinedEmail($this->persistence);
         $base_email->save();
 
         //pass a Guide, should have an email set
@@ -110,11 +110,11 @@ class BaseEmailTest extends TestCase
     public function testSend()
     {
         //no recipients, should return false
-        $base_email = new BaseEmail($this->persistence);
+        $base_email = new BasePredefinedEmail($this->persistence);
         self::assertFalse($base_email->send());
 
         //one recipient, should return true
-        $base_email = new BaseEmail($this->persistence);
+        $base_email = new BasePredefinedEmail($this->persistence);
         $base_email->set('subject', 'Hello from PHPUnit');
         $base_email->set('message', 'Hello from PHPUnit');
         self::assertTrue($base_email->addRecipient('test2@easyoutdooroffice.com'));
@@ -123,14 +123,14 @@ class BaseEmailTest extends TestCase
 
     public function testloadInitialValues()
     {
-        $base_email = new BaseEmail($this->persistence);
+        $base_email = new BasePredefinedEmail($this->persistence);
         $base_email->loadInitialValues();
         self::assertTrue(true);
     }
 
     public function testAttachments()
     {
-        $base_email = new BaseEmail($this->persistence);
+        $base_email = new BasePredefinedEmail($this->persistence);
         $base_email->save();
         $file = $this->createTestFile('test.jpg', $this->persistence);
         $base_email->addAttachment($file->get('id'));
@@ -142,7 +142,7 @@ class BaseEmailTest extends TestCase
 
     public function testSendAttachments()
     {
-        $base_email = new BaseEmail($this->persistence);
+        $base_email = new BasePredefinedEmail($this->persistence);
         $base_email->save();
         $file = $this->createTestFile('test.jpg', $this->persistence);
         $base_email->addAttachment($file->get('id'));
@@ -152,7 +152,7 @@ class BaseEmailTest extends TestCase
 
     public function testInitialTemplateLoading()
     {
-        $base_email = new BaseEmail($this->persistence, ['template' => 'testemailtemplate.html']);
+        $base_email = new BasePredefinedEmail($this->persistence, ['template' => 'testemailtemplate.html']);
         $base_email->loadInitialValues();
         self::assertEquals($base_email->get('subject'), 'TestBetreff');
         self::assertTrue(strpos($base_email->get('message'), 'TestInhalt') !== false);
@@ -160,7 +160,7 @@ class BaseEmailTest extends TestCase
 
     public function testInitialTemplateLoadingByString()
     {
-        $base_email = new BaseEmail($this->persistence, ['template' => '{Subject}Hellow{/Subject}Magada']);
+        $base_email = new BasePredefinedEmail($this->persistence, ['template' => '{Subject}Hellow{/Subject}Magada']);
         $base_email->loadInitialValues();
         self::assertEquals($base_email->get('subject'), 'Hellow');
         self::assertTrue(strpos($base_email->get('message'), 'Magada') !== false);
@@ -173,7 +173,7 @@ class BaseEmailTest extends TestCase
         $user->set('signature', 'TestSignature');
         $user->save();
         $this->app->auth->user = $user;
-        $base_email = new BaseEmail(
+        $base_email = new BasePredefinedEmail(
             $this->persistence,
             ['template' => '{Subject}Hellow{/Subject}Magada{Signature}{/Signature}Lala']
         );
@@ -184,7 +184,7 @@ class BaseEmailTest extends TestCase
     public function testloadSignatureBySetting()
     {
         $this->app->addSetting('STD_EMAIL_SIGNATURE', 'TestSigSetting');
-        $base_email = new BaseEmail(
+        $base_email = new BasePredefinedEmail(
             $this->persistence,
             ['template' => '{Subject}Hellow{/Subject}Magada{Signature}{/Signature}']
         );
@@ -194,7 +194,7 @@ class BaseEmailTest extends TestCase
 
     public function testSMTPKeepAlive()
     {
-        $base_email = new BaseEmail(
+        $base_email = new BasePredefinedEmail(
             $this->persistence,
             ['template' => '{Subject}TestMoreThanOneRecipient{/Subject}TestMoreThanOneRecipient{Signature}{/Signature}']
         );
@@ -226,7 +226,7 @@ class BaseEmailTest extends TestCase
 
     public function testProcessMessageFunction()
     {
-        $base_email = new BaseEmail(
+        $base_email = new BasePredefinedEmail(
             $this->persistence,
             ['template' => '{Subject}BlaDu{$testsubject}{/Subject}BlaDu{$testbody}']
         );
@@ -243,7 +243,7 @@ class BaseEmailTest extends TestCase
 
     public function testOnSuccessFunction()
     {
-        $base_email = new BaseEmail(
+        $base_email = new BasePredefinedEmail(
             $this->persistence,
             ['template' => '{Subject}BlaDu{$testsubject}{/Subject}BlaDu{$testbody}']
         );
@@ -259,23 +259,23 @@ class BaseEmailTest extends TestCase
 
     /**
      * F***ing ref() function on non-loaded models!.
-     * Make sure non-saved BaseEmail does not accidently
+     * Make sure non-saved BasePredefinedEmail does not accidently
      * load any EmailRecipients
      */
     public function testNonLoadedBaseEmailHasNoRefEmailRecipients()
     {
         //first create a baseEmail and some EmailRecipients
-        $be1 = new BaseEmail($this->persistence);
+        $be1 = new BasePredefinedEmail($this->persistence);
         $be1->save();
         //this baseEmail should not be sent. $be2->ref('email_recipient') will reference
-        //the 2 EmailRecipients above as $be2->loaded() = false. BaseEmail needs to check this!
-        $be2 = new BaseEmail($this->persistence);
+        //the 2 EmailRecipients above as $be2->loaded() = false. BasePredefinedEmail needs to check this!
+        $be2 = new BasePredefinedEmail($this->persistence);
         self::assertFalse($be2->send());
     }
 
     public function testEmailSendFail()
     {
-        $be = new BaseEmail($this->persistence);
+        $be = new BasePredefinedEmail($this->persistence);
         $be->phpMailer = new class($this->app) extends PHPMailer {
             public function send(): bool
             {
@@ -294,7 +294,7 @@ class BaseEmailTest extends TestCase
 
     public function testGetModelVars()
     {
-        $be = new BaseEmail($this->persistence);
+        $be = new BasePredefinedEmail($this->persistence);
         $res = $be->getModelVars(new User($this->persistence));
         self::assertEquals(
             [
@@ -310,7 +310,7 @@ class BaseEmailTest extends TestCase
 
     public function testGetModelVarsPrefix()
     {
-        $be = new BaseEmail($this->persistence);
+        $be = new BasePredefinedEmail($this->persistence);
         $res = $be->getModelVars(new User($this->persistence), 'user_');
         self::assertEquals(
             [
@@ -326,7 +326,7 @@ class BaseEmailTest extends TestCase
 
     public function testgetModelVarsUsesGetFieldsForEmailTemplate()
     {
-        $be = new BaseEmail($this->persistence);
+        $be = new BasePredefinedEmail($this->persistence);
         $class = new class() extends User {
             public function getFieldsForEmailTemplate(): array
             {
@@ -348,7 +348,7 @@ class BaseEmailTest extends TestCase
 
     public function testgetTemplateEditVars()
     {
-        $be = new BaseEmail($this->persistence);
+        $be = new BasePredefinedEmail($this->persistence);
         $be->model = new User($this->persistence);
         self::assertEquals(
             [
@@ -379,7 +379,7 @@ class BaseEmailTest extends TestCase
         $ea->set('imap_sent_folder', IMAP_SENT_FOLDER);
         $ea->save();
 
-        $be = new BaseEmail($this->persistence);
+        $be = new BasePredefinedEmail($this->persistence);
         $be->addRecipient('test3@easyoutdooroffice.com');
         $be->set('email_account_id', $ea->get('id'));
         $be->set('subject', __FUNCTION__);
@@ -391,7 +391,7 @@ class BaseEmailTest extends TestCase
     public function testGetDefaultEmailAccountId()
     {
         $persistence = $this->getSqliteTestPersistence();
-        $be = new BaseEmail($persistence);
+        $be = new BasePredefinedEmail($persistence);
         self::assertNull($be->getDefaultEmailAccountId());
         $this->_addStandardEmailAccount($persistence);
         self::assertNotEmpty($be->getDefaultEmailAccountId());
@@ -399,7 +399,7 @@ class BaseEmailTest extends TestCase
 
     public function testGetAllImplementations()
     {
-        $res = (new BaseEmail($this->persistence))->getAllImplementations(
+        $res = (new BasePredefinedEmail($this->persistence))->getAllImplementations(
             [
                 FILE_BASE_PATH . 'tests/TestClasses/BaseEmailTestClasses' => '\\PMRAtk\tests\\TestClasses\\BaseEmailTestClasses\\'
             ]

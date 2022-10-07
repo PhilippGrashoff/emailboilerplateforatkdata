@@ -3,11 +3,11 @@
 namespace emailboilerplateforatkdata\tests\emailimplementations;
 
 use Atk4\Ui\HtmlTemplate;
-use emailboilerplateforatkdata\BaseEmail;
+use emailboilerplateforatkdata\BasePredefinedEmail;
 use emailboilerplateforatkdata\tests\testclasses\Event;
 use emailboilerplateforatkdata\tests\testclasses\Location;
 
-class EventSummaryForLocation extends BaseEmail
+class EventSummaryForLocation extends BasePredefinedEmail
 {
     public string $defaultTemplateFile = 'event_summary_for_location.html';
     protected string $modelClassName = Location::class;

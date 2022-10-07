@@ -11,10 +11,10 @@ use Throwable;
 abstract class BaseEmailTemplateHandler
 {
 
-    protected BaseEmail $baseEmail;
+    protected BasePredefinedEmail $baseEmail;
     protected string $htmlTemplateClass = HtmlTemplate::class;
 
-    public function __construct(BaseEmail $baseEmail = null)
+    public function __construct(BasePredefinedEmail $baseEmail = null)
     {
         if ($baseEmail) {
             $this->baseEmail = $baseEmail;
@@ -110,7 +110,7 @@ abstract class BaseEmailTemplateHandler
     }
 
     /**
-     * return an instance of each found implementation of BaseEmail in the given folder(s)
+     * return an instance of each found implementation of BasePredefinedEmail in the given folder(s)
      * parameter array: key is the dir to check for classes, value is the namespace
      */
     protected function getAllBaseEmailImplementations(string $directory, Persistence $persistence): array
@@ -129,7 +129,7 @@ abstract class BaseEmailTemplateHandler
             } catch (Throwable $e) {
                 continue;
             }
-            if (!$instance instanceof BaseEmail) {
+            if (!$instance instanceof BasePredefinedEmail) {
                 continue;
             }
             $result[$className] = clone $instance;
