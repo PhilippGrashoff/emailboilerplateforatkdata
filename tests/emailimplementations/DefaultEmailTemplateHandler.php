@@ -16,6 +16,6 @@ class DefaultEmailTemplateHandler extends BaseEmailTemplateHandler
     //overwrite in custom implementations to easily define where default template files can be found
     protected function getTemplateFilePath(): string
     {
-        return dirname(__DIR__) . '/testtemplatefiles/' . $this->baseEmail->defaultTemplateFile;
+        return dirname(__DIR__) . '/testtemplatefiles/' . $this->predefinedEmail->defaultTemplateFile;
     }
 }

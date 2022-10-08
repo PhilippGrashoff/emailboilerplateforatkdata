@@ -12,7 +12,6 @@ use emailboilerplateforatkdata\tests\emailimplementations\EventSummaryForLocatio
 use traitsforatkdata\TestCase;
 use traitsforatkdata\UserException;
 
-
 class BasePredefinedEmailTest extends TestCase
 {
     private $persistence;
@@ -168,21 +167,6 @@ class BasePredefinedEmailTest extends TestCase
         self::assertEquals('PIPI', $base_email->model->get('name'));
     }
 
-    /**
-     * F***ing ref() function on non-loaded models!.
-     * Make sure non-saved BasePredefinedEmail does not accidently
-     * load any EmailRecipients
-     */
-    public function testNonLoadedBaseEmailHasNoRefEmailRecipients()
-    {
-        //first create a baseEmail and some EmailRecipients
-        $be1 = new BasePredefinedEmail($this->persistence);
-        $be1->save();
-        //this baseEmail should not be sent. $be2->ref('email_recipient') will reference
-        //the 2 EmailRecipients above as $be2->loaded() = false. BasePredefinedEmail needs to check this!
-        $be2 = new BasePredefinedEmail($this->persistence);
-        self::assertFalse($be2->send());
-    }
 
     public function testGetModelVars()
     {

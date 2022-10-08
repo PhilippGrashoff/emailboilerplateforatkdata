@@ -27,9 +27,7 @@ abstract class BasePredefinedEmail extends Model
     public string $htmlTemplateClass = HtmlTemplate::class;
     protected HtmlTemplate $messageTemplate;
     protected HtmlTemplate $subjectTemplate;
-    protected bool $addHeaderAndFooter = true;
-    public HtmlTemplate $headerTemplate;
-    public HtmlTemplate $footerTemplate;
+    public bool $addHeaderAndFooter = true;
 
     //can it have multiple email templates, e.g. per Activity?
     protected bool $canHaveMultipleTemplates = false;
@@ -66,49 +64,32 @@ abstract class BasePredefinedEmail extends Model
         $this->emailTemplateHandler = new $this->emailTemplateHandlerClassName($this);
     }
 
+    public function setMessageTemplate(HtmlTemplate $messageTemplate): void
+    {
+        $this->messageTemplate = $messageTemplate;
+    }
+
+    public function setSubjectTemplate(HtmlTemplate $subjectTemplate): void
+    {
+        $this->subjectTemplate = $subjectTemplate;
+    }
+
     public function loadInitialValues()
     {
         $this->setModel();
         $this->loadInitialRecipients();
         $this->loadInitialAttachments();
         $this->loadInitialTemplate();
-    }
-
-    public function loadSubjectAndMessageTemplate()
-    {
-        if (!$this->loaded()) {
-            //TODO either throw or save?
-        }
-        $this->messageTemplate = new $this->htmlTemplateClass($this->get('message_template'));
-        $this->subjectTemplate = new $this->htmlTemplateClass($this->get('subject_template'));
+        $this->save();
     }
 
     protected function loadInitialTemplate(): void
     {
-        $this->messageTemplate = $this->emailTemplateHandler->getEmailTemplate();
-
-        $this->messageTemplate->trySet('recipient_firstname', '{$recipient_firstname}');
-        $this->messageTemplate->trySet('recipient_lastname', '{$recipient_lastname}');
-        $this->messageTemplate->trySet('recipient_email', '{$recipient_email}');
-
+        $this->emailTemplateHandler->loadEmailTemplateForPredefinedEmail();
         $this->processMessageTemplateOnLoad();
-        $this->loadSubjectFromTemplate();
         $this->processSubjectTemplateOnLoad();
-        $this->addHeaderAndFooterToMessageTemplate();
-
         $this->set('subject_template', $this->subjectTemplate->renderToHtml());
         $this->set('message_template', $this->messageTemplate->renderToHtml());
-    }
-
-    protected function loadSubjectFromTemplate(): void
-    {
-        //get subject from Template if available
-        if ($this->messageTemplate->hasTag('Subject')) {
-            $this->subjectTemplate = $this->messageTemplate->cloneRegion('Subject');
-            $this->messageTemplate->del('Subject');
-        } else {
-            $this->$this->subjectTemplate = new HtmlTemplate('');
-        }
     }
 
     protected function setModel(): void
@@ -218,62 +199,42 @@ abstract class BasePredefinedEmail extends Model
     }
 
     /**
-     * sends the message to each recipient in the list
-     *
-     * @return bool   true if at least one send was successful, false otherwise
+     * sends the message to each recipient
+     * @return bool true if at least one send was successful, false otherwise
      */
     public function send(): bool
     {
         $this->prepareSend();
 
-        $successful_send = false;
+        $successfulSendingToAtLeastOneRecipient = false;
         //single send for each recipient
         foreach ($this->ref(EmailRecipient::class) as $recipient) {
             $this->phpMailer->Subject = $this->getSubjectTemplateForRecipient($recipient)->renderToHtml();
-
-            $this->phpMailer->Body = $this->header . $this->getMessageTemplateForRecipient($recipient)->renderToHtml(
-                ) . $this->footer;
+            $this->phpMailer->Body = $this->getMessageTemplateForRecipient($recipient)->renderToHtml();
             $this->phpMailer->AltBody = $this->phpMailer->html2text($this->phpMailer->Body);
             $this->phpMailer->addAddress(
-                $recipient->get('email'),
+                $recipient->get('email_address'),
                 $recipient->get('firstname') . ' ' . $recipient->get('lastname')
             );
 
             //Send Email
-            if (!$this->phpMailer->send()) {
-                if ($this->addUserMessageOnSend) {
-                    $this->app->addUserMessage(
-                        'Die Email ' . $this->phpMailer->Subject . ' konnte nicht an  ' . $recipient->get(
-                            'email'
-                        ) . ' gesendet werden.',
-                        'error'
-                    );
-                }
-            } else {
-                $successful_send = true;
-                if ($this->addUserMessageOnSend) {
-                    $this->app->addUserMessage(
-                        'Die Email ' . $this->phpMailer->Subject . ' wurde erfolgreich an ' . $recipient->get(
-                            'email'
-                        ) . ' versendet.',
-                        'success'
-                    );
-                }
-                //add Email to IMAP Sent Folder
+            if ($this->phpMailer->send()) {
+                $successfulSendingToAtLeastOneRecipient = true;
+                //add Email to IMAP Sent Folder TODO move to PhpMailer
                 $this->phpMailer->addSentEmailByIMAP();
             }
-
             //clear recipient after each Email
             $this->phpMailer->clearAddresses();
         }
 
-        if ($successful_send && is_callable($this->onSuccess)) {
-            call_user_func($this->onSuccess, $this->model);
+        if ($successfulSendingToAtLeastOneRecipient) {
+            $this->onSuccessfulSend();
         }
 
+        //Email is sent, no need to store it any longer
         $this->delete();
 
-        return $successful_send;
+        return $successfulSendingToAtLeastOneRecipient;
     }
 
 
@@ -297,6 +258,17 @@ abstract class BasePredefinedEmail extends Model
         }
 
         $this->loadSubjectAndMessageTemplate();
+    }
+
+    protected function loadSubjectAndMessageTemplate()
+    {
+        $messageTemplate = $this->get('message_template');
+        if ($this->addHeaderAndFooter) {
+            $messageTemplate = $this->emailTemplateHandler->getHeaderTemplateString()
+                . $messageTemplate . $this->emailTemplateHandler->getFooterTemplateString();
+        }
+        $this->messageTemplate = new $this->htmlTemplateClass($messageTemplate);
+        $this->subjectTemplate = new $this->htmlTemplateClass($this->get('subject_template'));
     }
 
     /**

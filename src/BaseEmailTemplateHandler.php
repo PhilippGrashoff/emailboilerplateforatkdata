@@ -2,6 +2,7 @@
 
 namespace emailboilerplateforatkdata;
 
+use Atk4\Data\Exception;
 use Atk4\Data\Persistence;
 use Atk4\Ui\HtmlTemplate;
 use DirectoryIterator;
@@ -11,19 +12,57 @@ use Throwable;
 abstract class BaseEmailTemplateHandler
 {
 
-    protected BasePredefinedEmail $baseEmail;
+    protected BasePredefinedEmail $predefinedEmail;
     protected string $htmlTemplateClass = HtmlTemplate::class;
 
-    public function __construct(BasePredefinedEmail $baseEmail = null)
+    public function __construct(BasePredefinedEmail $predefinedEmail = null)
     {
-        if ($baseEmail) {
-            $this->baseEmail = $baseEmail;
+        if ($predefinedEmail) {
+            $this->predefinedEmail = $predefinedEmail;
         }
     }
 
-    public function getEmailTemplate(): HtmlTemplate
+    public function loadEmailTemplateForPredefinedEmail()
     {
-        //try load Template for the individual $baseEmail->model entity
+        if (!$this->predefinedEmail) {
+            throw new Exception(__FUNCTION__ . ' can be only used with a set predefinedEmail');
+        }
+        $htmlTemplate = $this->getUnprocessedEmailTemplate();
+        $this->processTemplate($htmlTemplate);
+    }
+
+    protected function processTemplate(HtmlTemplate $messageTemplate)
+    {
+        $messageTemplate->trySet('recipient_firstname', '{$recipient_firstname}');
+        $messageTemplate->trySet('recipient_lastname', '{$recipient_lastname}');
+        $messageTemplate->trySet('recipient_email', '{$recipient_email}');
+
+        //get subject from Template if available
+        if ($messageTemplate->hasTag('Subject')) {
+            $subjectTemplate = $messageTemplate->cloneRegion('Subject');
+            $messageTemplate->del('Subject');
+        } else {
+            $subjectTemplate = new HtmlTemplate('');
+        }
+        $this->predefinedEmail->setMessageTemplate($messageTemplate);
+        $this->predefinedEmail->setSubjectTemplate($subjectTemplate);
+    }
+
+    //customize in implemention to add e.g. html header structure before content
+    public function getHeaderTemplateString(): string
+    {
+        return '';
+    }
+
+    //customize in implemention to add e.g. html footer structure after content
+    public function getFooterTemplateString(): string
+    {
+        return '';
+    }
+
+    protected function getUnprocessedEmailTemplate(): HtmlTemplate
+    {
+        //try load Template for the individual $predefinedEmail->model entity
         $result = $this->tryLoadTemplateForEntity();
         if ($result) {
             return $result;
@@ -40,7 +79,7 @@ abstract class BaseEmailTemplateHandler
     protected function tryLoadTemplateForEntity(): ?HtmlTemplate
     {
         //no model or not loaded?
-        if (!$this->baseEmail->entity || !$this->baseEmail->entity->loaded()) {
+        if (!$this->predefinedEmail->entity || !$this->predefinedEmail->entity->loaded()) {
             return null;
         }
 
@@ -55,10 +94,10 @@ abstract class BaseEmailTemplateHandler
 
     protected function tryLoadTemplateFromPersistence(): ?HtmlTemplate
     {
-        $emailTemplate = new EmailTemplate($this->baseEmail->persistence);
+        $emailTemplate = new EmailTemplate($this->predefinedEmail->persistence);
         $emailTemplate->addCondition('model_class', '=', null);
         $emailTemplate->addCondition('model_id', '=', null);
-        $emailTemplate->tryLoadBy('ident', (new \ReflectionClass($this->baseEmail))->getName());
+        $emailTemplate->tryLoadBy('ident', (new \ReflectionClass($this->predefinedEmail))->getName());
         if (!$emailTemplate->loaded()) {
             return null;
         }
@@ -86,7 +125,7 @@ abstract class BaseEmailTemplateHandler
     //overwrite in custom implementations to easily define where default template files can be found
     protected function getTemplateFilePath(): string
     {
-        return $this->baseEmail->defaultTemplateFile;
+        return $this->predefinedEmail->defaultTemplateFile;
     }
 
     /**
@@ -95,14 +134,14 @@ abstract class BaseEmailTemplateHandler
      */
     public function createEmailTemplateEntities(string $directory, Persistence $persistence): void
     {
-        foreach (self:: getAllBaseEmailImplementations($directory, $persistence) as $baseEmail) {
-            $this->baseEmail = $baseEmail;
+        foreach (self:: getAllpredefinedEmailImplementations($directory, $persistence) as $predefinedEmail) {
+            $this->predefinedEmail = $predefinedEmail;
             $emailTemplate = new EmailTemplate($persistence);
             $emailTemplate->addCondition('model_class', null);
             $emailTemplate->addCondition('model_id', null);
-            $emailTemplate->tryLoadBy('ident', (new \ReflectionClass($this->baseEmail))->getName());
+            $emailTemplate->tryLoadBy('ident', (new \ReflectionClass($this->predefinedEmail))->getName());
             if (!$emailTemplate->loaded()) {
-                $emailTemplate->set('ident', (new \ReflectionClass($this->baseEmail))->getName());
+                $emailTemplate->set('ident', (new \ReflectionClass($this->predefinedEmail))->getName());
                 $emailTemplate->set('value', $this->loadRawDefaultTemplateFromFile());
                 $emailTemplate->save();
             }
@@ -113,7 +152,7 @@ abstract class BaseEmailTemplateHandler
      * return an instance of each found implementation of BasePredefinedEmail in the given folder(s)
      * parameter array: key is the dir to check for classes, value is the namespace
      */
-    protected function getAllBaseEmailImplementations(string $directory, Persistence $persistence): array
+    protected function getAllpredefinedEmailImplementations(string $directory, Persistence $persistence): array
     {
         $result = [];
         foreach ((new DirectoryIterator($directory)) as $file) {

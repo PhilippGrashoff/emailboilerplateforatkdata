@@ -11,13 +11,13 @@ class LocationEmailTemplateHandler extends DefaultEmailTemplateHandler
     //we check if the a custom template for the location of an event is in database
     protected function customLoadTemplateForEntity(): ?HtmlTemplate
     {
-        if (!$this->baseEmail->entity->get('location_id')) {
+        if (!$this->predefinedEmail->entity->get('location_id')) {
             return null;
         }
-        $emailTemplate = new EmailTemplate($this->baseEmail->persistence);
+        $emailTemplate = new EmailTemplate($this->predefinedEmail->persistence);
         $emailTemplate->addCondition('model_class', '=', Location::class);
-        $emailTemplate->addCondition('model_id', '=', $this->baseEmail->entity->get('location_id'));
-        $emailTemplate->tryLoadBy('ident', (new \ReflectionClass($this->baseEmail))->getName());
+        $emailTemplate->addCondition('model_id', '=', $this->predefinedEmail->entity->get('location_id'));
+        $emailTemplate->tryLoadBy('ident', (new \ReflectionClass($this->predefinedEmail))->getName());
         if (!$emailTemplate->loaded()) {
             return null;
         }
