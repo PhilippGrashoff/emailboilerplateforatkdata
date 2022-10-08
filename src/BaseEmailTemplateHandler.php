@@ -22,46 +22,11 @@ abstract class BaseEmailTemplateHandler
         }
     }
 
-    public function loadEmailTemplateForPredefinedEmail()
+    public function loadEmailTemplateForPredefinedEmail(): HtmlTemplate
     {
         if (!$this->predefinedEmail) {
-            throw new Exception(__FUNCTION__ . ' can be only used with a set predefinedEmail');
+            throw new Exception(__FUNCTION__ . ' can be only used with a set PredefinedEmail');
         }
-        $htmlTemplate = $this->getUnprocessedEmailTemplate();
-        $this->processTemplate($htmlTemplate);
-    }
-
-    protected function processTemplate(HtmlTemplate $messageTemplate)
-    {
-        $messageTemplate->trySet('recipient_firstname', '{$recipient_firstname}');
-        $messageTemplate->trySet('recipient_lastname', '{$recipient_lastname}');
-        $messageTemplate->trySet('recipient_email', '{$recipient_email}');
-
-        //get subject from Template if available
-        if ($messageTemplate->hasTag('Subject')) {
-            $subjectTemplate = $messageTemplate->cloneRegion('Subject');
-            $messageTemplate->del('Subject');
-        } else {
-            $subjectTemplate = new HtmlTemplate('');
-        }
-        $this->predefinedEmail->setMessageTemplate($messageTemplate);
-        $this->predefinedEmail->setSubjectTemplate($subjectTemplate);
-    }
-
-    //customize in implemention to add e.g. html header structure before content
-    public function getHeaderTemplateString(): string
-    {
-        return '';
-    }
-
-    //customize in implemention to add e.g. html footer structure after content
-    public function getFooterTemplateString(): string
-    {
-        return '';
-    }
-
-    protected function getUnprocessedEmailTemplate(): HtmlTemplate
-    {
         //try load Template for the individual $predefinedEmail->model entity
         $result = $this->tryLoadTemplateForEntity();
         if ($result) {
@@ -74,6 +39,19 @@ abstract class BaseEmailTemplateHandler
         }
         //load default template from file if other methods did not return anything
         return $this->loadDefaultTemplateFromFile();
+    }
+
+
+    //customize in implemention to add e.g. html header structure before content
+    public function getHeaderTemplateString(): string
+    {
+        return '';
+    }
+
+    //customize in implemention to add e.g. html footer structure after content
+    public function getFooterTemplateString(): string
+    {
+        return '';
     }
 
     protected function tryLoadTemplateForEntity(): ?HtmlTemplate
@@ -107,12 +85,7 @@ abstract class BaseEmailTemplateHandler
 
     protected function loadDefaultTemplateFromFile(): HtmlTemplate
     {
-        //now try to load from file
-        $fileName = $this->getTemplateFilePath();
-        //throws Exception if file can not be found
-        $htmlTemplate = new $this->htmlTemplateClass();
-        $htmlTemplate->loadFromFile($fileName);
-        return $htmlTemplate;
+        return new $this->htmlTemplateClass($this->loadRawDefaultTemplateFromFile());
     }
 
     protected function loadRawDefaultTemplateFromFile(): string
@@ -134,7 +107,7 @@ abstract class BaseEmailTemplateHandler
      */
     public function createEmailTemplateEntities(string $directory, Persistence $persistence): void
     {
-        foreach (self:: getAllpredefinedEmailImplementations($directory, $persistence) as $predefinedEmail) {
+        foreach (self:: getAllPredefinedEmailImplementations($directory, $persistence) as $predefinedEmail) {
             $this->predefinedEmail = $predefinedEmail;
             $emailTemplate = new EmailTemplate($persistence);
             $emailTemplate->addCondition('model_class', null);
@@ -152,7 +125,7 @@ abstract class BaseEmailTemplateHandler
      * return an instance of each found implementation of BasePredefinedEmail in the given folder(s)
      * parameter array: key is the dir to check for classes, value is the namespace
      */
-    protected function getAllpredefinedEmailImplementations(string $directory, Persistence $persistence): array
+    protected function getAllPredefinedEmailImplementations(string $directory, Persistence $persistence): array
     {
         $result = [];
         foreach ((new DirectoryIterator($directory)) as $file) {

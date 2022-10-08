@@ -118,19 +118,6 @@ class BasePredefinedEmailTest extends TestCase
         );
     }
 
-    public function testSMTPKeepAlive()
-    {
-        $base_email = new EventInvitation(
-            $this->persistence,
-            ['template' => '{Subject}TestMoreThanOneRecipient{/Subject}TestMoreThanOneRecipient{Signature}{/Signature}']
-        );
-        $base_email->loadInitialValues();
-        $base_email->save();
-        self::assertTrue($base_email->addRecipient('test1@easyoutdooroffice.com'));
-        self::assertTrue($base_email->addRecipient('test2@easyoutdooroffice.com'));
-        $base_email->send();
-    }
-
     public function testProcessSubjectAndMessagePerRecipient()
     {
         $base_email = new EventSummaryForLocation(
@@ -271,5 +258,18 @@ class BasePredefinedEmailTest extends TestCase
         self::assertNull($be->getDefaultEmailAccountId());
         $this->_addStandardEmailAccount($persistence);
         self::assertNotEmpty($be->getDefaultEmailAccountId());
+    }
+
+    public function testSMTPKeepAlive()
+    {
+        $base_email = new EventInvitation(
+            $this->persistence,
+            ['template' => '{Subject}TestMoreThanOneRecipient{/Subject}TestMoreThanOneRecipient{Signature}{/Signature}']
+        );
+        $base_email->loadInitialValues();
+        $base_email->save();
+        self::assertTrue($base_email->addRecipient('test1@easyoutdooroffice.com'));
+        self::assertTrue($base_email->addRecipient('test2@easyoutdooroffice.com'));
+        $base_email->send();
     }
 }

@@ -64,15 +64,6 @@ abstract class BasePredefinedEmail extends Model
         $this->emailTemplateHandler = new $this->emailTemplateHandlerClassName($this);
     }
 
-    public function setMessageTemplate(HtmlTemplate $messageTemplate): void
-    {
-        $this->messageTemplate = $messageTemplate;
-    }
-
-    public function setSubjectTemplate(HtmlTemplate $subjectTemplate): void
-    {
-        $this->subjectTemplate = $subjectTemplate;
-    }
 
     public function loadInitialValues()
     {
@@ -86,6 +77,17 @@ abstract class BasePredefinedEmail extends Model
     protected function loadInitialTemplate(): void
     {
         $this->emailTemplateHandler->loadEmailTemplateForPredefinedEmail();
+        $this->messageTemplate->trySet('recipient_firstname', '{$recipient_firstname}');
+        $this->messageTemplate->trySet('recipient_lastname', '{$recipient_lastname}');
+        $this->messageTemplate->trySet('recipient_email', '{$recipient_email}');
+
+        //get subject from Template if available
+        if ($this->messageTemplate->hasTag('Subject')) {
+            $this->subjectTemplate = $this->messageTemplate->cloneRegion('Subject');
+            $this->messageTemplate->del('Subject');
+        } else {
+            $this->subjectTemplate = new HtmlTemplate('');
+        }
         $this->processMessageTemplateOnLoad();
         $this->processSubjectTemplateOnLoad();
         $this->set('subject_template', $this->subjectTemplate->renderToHtml());
@@ -260,7 +262,7 @@ abstract class BasePredefinedEmail extends Model
         $this->loadSubjectAndMessageTemplate();
     }
 
-    protected function loadSubjectAndMessageTemplate()
+    protected function loadSubjectAndMessageTemplate(): void
     {
         $messageTemplate = $this->get('message_template');
         if ($this->addHeaderAndFooter) {
@@ -289,13 +291,6 @@ abstract class BasePredefinedEmail extends Model
      * The following methods can be implemented in child classes to create a custom behaviour.
      * Check the test files for sample usages.
      */
-    protected function loadHeaderTemplate(): void
-    {
-    }
-
-    protected function loadFooterTemplate(): void
-    {
-    }
 
     protected function processSubjectTemplatePerRecipient(): void
     {
