@@ -2,36 +2,24 @@
 
 namespace emailboilerplateforatkdata;
 
-use atk4\core\AppScopeTrait;
-use atk4\core\DIContainerTrait;
-use atk4\core\Exception;
-use atk4\ui\App;
+use Atk4\Data\Persistence;
 use Throwable;
 
 class PHPMailer extends \PHPMailer\PHPMailer\PHPMailer
 {
 
-    use DIContainerTrait;
-    use AppScopeTrait;
+    //the EmailAccount to send from. If not set, use first one
+    protected EmailAccount $emailAccount;
+    protected Persistence $persistence;
 
-    //the PMRAtk\Data\Email\EmailAccount to send from. If not set, use first one
-    public $emailAccount;
-
-    //header and footer which will be added to email before send
-    public $header;
-    public $footer;
-    public $headerTemplate = 'default_header.html';
-    public $footerTemplate = 'default_footer.html';
-
-    public $addImapDebugInfo = false;
-    public $imapErrors = [];
-    public $appendedByIMAP = false;
+    public bool $addImapDebugInfo = false;
+    public array $imapErrors = [];
+    public bool $appendedByIMAP = false;
 
 
-    public function __construct(App $app, array $defaults = [])
+    public function __construct(Persistence $persistence)
     {
-        $this->app = $app;
-        $this->setDefaults($defaults);
+        $this->persistence = $persistence;
         $this->CharSet = 'utf-8';
         //set SMTP sending
         $this->isSMTP();
@@ -39,58 +27,16 @@ class PHPMailer extends \PHPMailer\PHPMailer\PHPMailer
         $this->SMTPAuth = true;
 
         parent::__construct();
-
-        $this->header = $this->app->loadEmailTemplate($this->headerTemplate);
-        $this->header->setSTDValues();
-        $this->footer = $this->app->loadEmailTemplate($this->footerTemplate);
-        $this->footer->setSTDValues();
     }
 
-    public function setBody(string $body): void
+    public function setEmailAccount($emailAccountId): void
     {
-        $this->Body = $this->header->render() . $body . $this->footer->render();
-        $this->AltBody = $this->html2text($this->Body);
+        $this->emailAccount = new EmailAccount($this->persistence);
+        $this->emailAccount->load($emailAccountId);
+        $this->copySettingsFromEmailAccount();
     }
 
-    public function send(): bool
-    {
-        $this->_setEmailAccount();
-        return parent::send();
-    }
-
-    protected function _setEmailAccount(): void
-    {
-        if (
-            $this->emailAccount instanceof EmailAccount
-            && $this->emailAccount->loaded()
-        ) {
-            $this->_copySettingsFromEmailAccount();
-            return;
-        }
-        //maybe just the ID of the emailaccount was passed?
-        elseif (is_scalar($this->emailAccount)) {
-            $val = $this->emailAccount;
-            $this->emailAccount = new EmailAccount($this->app->db, ['enableInternalAccounts' => true]);
-            if ($val) {
-                $this->emailAccount->tryLoad($val);
-                if ($this->emailAccount->loaded()) {
-                    $this->_copySettingsFromEmailAccount();
-                    return;
-                }
-            }
-        }
-
-        //none found? load default
-        $this->emailAccount = new EmailAccount($this->app->db);
-        $this->emailAccount->tryLoadAny();
-
-        if (!$this->emailAccount->loaded()) {
-            throw new Exception('No EmailAccount to send from found!');
-        }
-        $this->_copySettingsFromEmailAccount();
-    }
-
-    protected function _copySettingsFromEmailAccount(): void
+    protected function copySettingsFromEmailAccount(): void
     {
         $this->Host = $this->emailAccount->get('smtp_host');
         $this->Port = $this->emailAccount->get('smtp_port');
@@ -114,7 +60,6 @@ class PHPMailer extends \PHPMailer\PHPMailer\PHPMailer
      */
     public function addSentEmailByIMAP(): bool
     {
-        $this->_setEmailAccount();
         if (
             !$this->emailAccount->get('imap_host')
             || !$this->emailAccount->get('imap_port')

@@ -2,6 +2,7 @@
 
 namespace emailboilerplateforatkdata\tests;
 
+use Atk4\Data\Field\Email;
 use emailboilerplateforatkdata\Attachment;
 use emailboilerplateforatkdata\BasePredefinedEmail;
 use emailboilerplateforatkdata\EmailAccount;
@@ -9,6 +10,8 @@ use emailboilerplateforatkdata\EmailRecipient;
 use emailboilerplateforatkdata\EmailTemplate;
 use emailboilerplateforatkdata\tests\emailimplementations\EventInvitation;
 use emailboilerplateforatkdata\tests\emailimplementations\EventSummaryForLocation;
+use emailboilerplateforatkdata\tests\testclasses\Event;
+use emailboilerplateforatkdata\tests\testclasses\Location;
 use traitsforatkdata\TestCase;
 use traitsforatkdata\UserException;
 
@@ -17,6 +20,8 @@ class BasePredefinedEmailTest extends TestCase
     private $persistence;
 
     protected $sqlitePersistenceModels = [
+        Event::class,
+        Location::class,
         EmailAccount::class,
         EmailTemplate::class,
         EventSummaryForLocation::class,
@@ -118,23 +123,38 @@ class BasePredefinedEmailTest extends TestCase
         );
     }
 
+
+    public function testUseHeaderAndFooterFromFile(): void
+    {
+    }
+
+    public function testUseHeaderAndFooterFromPersistence(): void
+    {
+    }
+
+    public function testDoNotAddHeaderAndFooter(): void
+    {
+    }
+
     public function testProcessSubjectAndMessagePerRecipient()
     {
-        $base_email = new EventSummaryForLocation(
-            $this->persistence,
-            ['template' => '{Subject}BlaDu{$testsubject}{/Subject}BlaDu{$testbody}']
-        );
-        $base_email->loadInitialValues();
-        $base_email->processSubjectPerRecipient = function ($recipient, $template) {
-            $template->set('testsubject', 'HARALD');
-        };
-        $base_email->processMessagePerRecipient = function ($recipient, $template) {
-            $template->set('testbody', 'MARTOR');
-        };
-        $base_email->addRecipient('test1@easyoutdooroffice.com');
-        self::assertTrue($base_email->send());
-        self::assertTrue(strpos($base_email->phpMailer->getSentMIMEMessage(), 'HARALD') !== false);
-        self::assertTrue(strpos($base_email->phpMailer->getSentMIMEMessage(), 'MARTOR') !== false);
+        $emailAccount = new EmailAccount($this->persistence);
+        $emailAccount->save();
+        $location = new Location($this->persistence);
+        $location->save();
+        $eventInvitation = new EventSummaryForLocation($this->persistence, ['entity' => $location]);
+        $eventInvitation->loadInitialValues();
+        $eventInvitation->addRecipient('test1@easyoutdooroffice.com', 'Peter', 'Maier');
+        $eventInvitation->send();
+        self::assertStringNotContainsString('Hans', $eventInvitation->phpMailer->Body);
+        self::assertStringNotContainsString('Hans', $eventInvitation->phpMailer->Subject);
+
+        $eventInvitation = new EventSummaryForLocation($this->persistence,['entity' => $location]);
+        $eventInvitation->loadInitialValues();
+        $eventInvitation->addRecipient('test1@easyoutdooroffice.com', 'Hans', 'Maier');
+        $eventInvitation->send();
+        self::assertStringContainsString('Hans', $eventInvitation->phpMailer->Body);
+        self::assertStringContainsString('Hans', $eventInvitation->phpMailer->Subject);
     }
 
 

@@ -6,6 +6,7 @@ use Atk4\Data\Exception;
 use Atk4\Data\Model;
 use Atk4\Ui\Form\Control\Dropdown;
 use Atk4\Ui\HtmlTemplate;
+use Atk4\Ui\Table\Column\Html;
 use traitsforatkdata\UserException;
 
 abstract class BasePredefinedEmail extends Model
@@ -33,7 +34,7 @@ abstract class BasePredefinedEmail extends Model
     protected bool $canHaveMultipleTemplates = false;
 
     //PHPMailer instance which takes care of the actual sending
-    private PHPMailer $phpMailer;
+    public PHPMailer $phpMailer;
 
     protected string $emailTemplateHandlerClassName = BaseEmailTemplateHandler::class;
     protected BaseEmailTemplateHandler $emailTemplateHandler;
@@ -76,10 +77,13 @@ abstract class BasePredefinedEmail extends Model
 
     protected function loadInitialTemplate(): void
     {
-        $this->emailTemplateHandler->loadEmailTemplateForPredefinedEmail();
+        $this->messageTemplate = $this->emailTemplateHandler->loadEmailTemplateForPredefinedEmail();
         $this->messageTemplate->trySet('recipient_firstname', '{$recipient_firstname}');
         $this->messageTemplate->trySet('recipient_lastname', '{$recipient_lastname}');
         $this->messageTemplate->trySet('recipient_email', '{$recipient_email}');
+        //do this before extracting subject template to save duplicate code in implementations -
+        // values to tags usually need to be set then only once
+        $this->processMessageTemplateOnLoad();
 
         //get subject from Template if available
         if ($this->messageTemplate->hasTag('Subject')) {
@@ -88,7 +92,6 @@ abstract class BasePredefinedEmail extends Model
         } else {
             $this->subjectTemplate = new HtmlTemplate('');
         }
-        $this->processMessageTemplateOnLoad();
         $this->processSubjectTemplateOnLoad();
         $this->set('subject_template', $this->subjectTemplate->renderToHtml());
         $this->set('message_template', $this->messageTemplate->renderToHtml());
@@ -180,7 +183,7 @@ abstract class BasePredefinedEmail extends Model
         $messageTemplate->trySet('recipient_lastname', $emailRecipient->get('lastname'));
         $messageTemplate->trySet('recipient_email', $emailRecipient->get('email_address'));
 
-        $this->processMessageTemplatePerRecipient();
+        $this->processMessageTemplatePerRecipient($messageTemplate, $emailRecipient);
 
         return $messageTemplate;
     }
@@ -195,7 +198,7 @@ abstract class BasePredefinedEmail extends Model
         $subjectTemplate->trySet('recipient_lastname', $emailRecipient->get('lastname'));
         $subjectTemplate->trySet('recipient_email', $emailRecipient->get('email_address'));
 
-        $this->processSubjectTemplatePerRecipient();
+        $this->processSubjectTemplatePerRecipient($subjectTemplate, $emailRecipient);
 
         return $subjectTemplate;
     }
@@ -246,8 +249,8 @@ abstract class BasePredefinedEmail extends Model
         if (!$this->loaded()) {
             $this->save();
         }
-        $this->phpMailer = new PHPMailer();
-        $this->phpMailer->emailAccount = $this->get('email_account_id') ?? $this->getDefaultEmailAccountId();
+        $this->phpMailer = new PHPMailer($this->persistence);
+        $this->phpMailer->setEmailAccount($this->get('email_account_id') ?? $this->getDefaultEmailAccountId());
 
         //add Attachments
         foreach ($this->ref(Attachment::class) as $attachment) {
@@ -255,7 +258,7 @@ abstract class BasePredefinedEmail extends Model
         }
 
         //if email is sent to several recipients, keep SMTP connection open
-        if (intval($this->ref('email_recipient')->action('count')->getOne()) > 1) {
+        if ((int)$this->ref(EmailRecipient::class)->action('count')->getOne() > 1) {
             $this->phpMailer->SMTPKeepAlive = true;
         }
 
@@ -274,17 +277,14 @@ abstract class BasePredefinedEmail extends Model
     }
 
     /**
-     * can be implemented in descendants. Can be used to set a standard Email Account to send from when more than one is available
+     * can be implemented in descendants. Can be used to set a standard Email Account to send from
+     * when more than one is available
      */
     public function getDefaultEmailAccountId()
     {
         $ea = new EmailAccount($this->persistence);
-        $ea->addCondition('id', '>', -1);
-        $ea->tryLoadAny();
-        if ($ea->loaded()) {
-            return $ea->get('id');
-        }
-        return null;
+        $ea->loadAny();
+        return $ea->getId();
     }
 
     /**
@@ -292,11 +292,11 @@ abstract class BasePredefinedEmail extends Model
      * Check the test files for sample usages.
      */
 
-    protected function processSubjectTemplatePerRecipient(): void
+    protected function processSubjectTemplatePerRecipient(HtmlTemplate $subjectTemplate, EmailRecipient $recipient): void
     {
     }
 
-    protected function processMessageTemplatePerRecipient(): void
+    protected function processMessageTemplatePerRecipient(HtmlTemplate $messageTemplate, EmailRecipient $recipient): void
     {
     }
 

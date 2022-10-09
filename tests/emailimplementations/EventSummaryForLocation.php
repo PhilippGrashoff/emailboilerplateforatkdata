@@ -4,6 +4,7 @@ namespace emailboilerplateforatkdata\tests\emailimplementations;
 
 use Atk4\Ui\HtmlTemplate;
 use emailboilerplateforatkdata\BasePredefinedEmail;
+use emailboilerplateforatkdata\EmailRecipient;
 use emailboilerplateforatkdata\tests\testclasses\Event;
 use emailboilerplateforatkdata\tests\testclasses\Location;
 
@@ -23,10 +24,31 @@ class EventSummaryForLocation extends BasePredefinedEmail
             return;
         }
         $this->messageTemplate->set('location_name', $this->entity->get('name'));
+        $this->messageTemplate->set('postfix_per_recipient', '{$postfix_per_recipient}');
         foreach ($this->entity->ref(Event::class) as $event) {
             //Method of custom HtmlTemplate class
             $this->eventSubTemplate->setTagsFromModel($this->entity, [], 'event_');
             $this->messageTemplate->dangerouslyAppendHtml('Event', $this->eventSubTemplate->renderToHtml());
+        }
+    }
+
+    //senseless code, just there to test functionality
+    protected function processMessageTemplatePerRecipient(
+        HtmlTemplate $messageTemplate,
+        EmailRecipient $recipient
+    ): void {
+        if ($recipient->get('firstname') === 'Hans') {
+            $messageTemplate->set('postfix_per_recipient', ' for Hans');
+        }
+    }
+
+    //senseless code, just there to test functionality
+    protected function processSubjectTemplatePerRecipient(
+        HtmlTemplate $subjectTemplate,
+        EmailRecipient $recipient
+    ): void {
+        if ($recipient->get('firstname') === 'Hans') {
+            $subjectTemplate->set('postfix_per_recipient', ' for Hans');
         }
     }
 }

@@ -1,3 +1,4 @@
-{Subject}Summary of events for {$location_name}{/Subject}
+{Subject}Summary of events for {$location_name}{$postfix_per_recipient}{/Subject}
 <div>The following events will take place at {$location_name}:</div>
 <ul>{Event}<li>{$event_date}: {$event_name}</li>{/Event}</ul>
+{$postfix_per_recipient}

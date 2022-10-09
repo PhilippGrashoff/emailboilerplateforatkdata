@@ -120,7 +120,7 @@ class BaseEmailTemplateHandlerTest extends TestCase
         $testData = $this->setupTestEventsAndLocations();
         $eventInvitation = new EventInvitation($this->persistence, ['entity' => $testData->event1]);
         $handler = new DefaultEmailTemplateHandler($eventInvitation);
-        $template = $handler->getEmailTemplate();
+        $template = $handler->loadEmailTemplateForPredefinedEmail();
         self::assertInstanceOf(ExtendedHtmlTemplate::class, $template);
     }
 
@@ -141,17 +141,6 @@ class BaseEmailTemplateHandlerTest extends TestCase
         );
     }
 
-    public function testUseHeaderAndFooterFromFile(): void
-    {
-    }
-
-    public function testUseHeaderAndFooterFromPersistence(): void
-    {
-    }
-
-    public function testDoNotAddHeaderAndFootrer(): void
-    {
-    }
 
     protected function setupTestEventsAndLocations(): TestDataResult
     {

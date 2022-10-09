@@ -25,7 +25,7 @@ abstract class BaseEmailTemplateHandler
     public function loadEmailTemplateForPredefinedEmail(): HtmlTemplate
     {
         if (!$this->predefinedEmail) {
-            throw new Exception(__FUNCTION__ . ' can be only used with a set PredefinedEmail');
+            throw new Exception(__FUNCTION__ . ' can be only used with a set $predefinedEmail');
         }
         //try load Template for the individual $predefinedEmail->model entity
         $result = $this->tryLoadTemplateForEntity();
@@ -42,13 +42,13 @@ abstract class BaseEmailTemplateHandler
     }
 
 
-    //customize in implemention to add e.g. html header structure before content
+    //customize in implementation to add e.g. html header structure before content
     public function getHeaderTemplateString(): string
     {
         return '';
     }
 
-    //customize in implemention to add e.g. html footer structure after content
+    //customize in implementation to add e.g. html footer structure after content
     public function getFooterTemplateString(): string
     {
         return '';

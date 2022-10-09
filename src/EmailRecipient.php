@@ -4,6 +4,7 @@ namespace emailboilerplateforatkdata;
 
 use secondarymodelforatk\SecondaryModel;
 
+//use SecondaryModel model_class and model_id fields to reference exisiting user models etc.
 class EmailRecipient extends SecondaryModel
 {
 
