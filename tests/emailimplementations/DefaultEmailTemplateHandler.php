@@ -2,11 +2,8 @@
 
 namespace emailboilerplateforatkdata\tests\emailimplementations;
 
-use Atk4\Ui\HtmlTemplate;
 use atkuiextendedtemplate\ExtendedHtmlTemplate;
-use emailboilerplateforatkdata\EmailTemplate;
 use emailboilerplateforatkdata\BaseEmailTemplateHandler;
-use emailboilerplateforatkdata\tests\testclasses\Location;
 
 class DefaultEmailTemplateHandler extends BaseEmailTemplateHandler
 {
@@ -17,5 +14,15 @@ class DefaultEmailTemplateHandler extends BaseEmailTemplateHandler
     protected function getTemplateFilePath(): string
     {
         return dirname(__DIR__) . '/testtemplatefiles/' . $this->predefinedEmail->defaultTemplateFile;
+    }
+
+    public function getHeaderTemplateString(): string
+    {
+        return '<html><head></head><body><div id="header"></div><div id="content">';
+    }
+
+    public function getFooterTemplateString(): string
+    {
+        return '<div id="footer"></div></div></body></html>';
     }
 }

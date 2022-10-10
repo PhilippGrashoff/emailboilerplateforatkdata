@@ -5,14 +5,15 @@ namespace emailboilerplateforatkdata\tests\emailimplementations;
 use Atk4\Ui\HtmlTemplate;
 use emailboilerplateforatkdata\BasePredefinedEmail;
 use emailboilerplateforatkdata\EmailRecipient;
+use emailboilerplateforatkdata\SentEmail;
 use emailboilerplateforatkdata\tests\testclasses\Event;
 use emailboilerplateforatkdata\tests\testclasses\Location;
 
 class EventSummaryForLocation extends BasePredefinedEmail
 {
     public string $defaultTemplateFile = 'event_summary_for_location.html';
-    protected string $modelClassName = Location::class;
-    protected string $emailTemplateHandlerClassName = DefaultEmailTemplateHandler::class;
+    protected string $modelClass = Location::class;
+    protected string $emailTemplateHandlerClass = DefaultEmailTemplateHandler::class;
 
     protected HtmlTemplate $eventSubTemplate;
 
@@ -50,5 +51,12 @@ class EventSummaryForLocation extends BasePredefinedEmail
         if ($recipient->get('firstname') === 'Hans') {
             $subjectTemplate->set('postfix_per_recipient', ' for Hans');
         }
+    }
+
+    protected function onSuccessfulSend(): void
+    {
+        $sentEmail = new SentEmail($this->persistence, ['parentObject' => $this->entity]);
+        $sentEmail->set('value', __CLASS__);
+        $sentEmail->save();
     }
 }

@@ -3,9 +3,13 @@
 namespace emailboilerplateforatkdata\tests\testclasses;
 
 use Atk4\Data\Model;
+use emailboilerplateforatkdata\SentEmail;
+use secondarymodelforatk\SecondaryModelRelationTrait;
 
 class Location extends Model
 {
+
+    use SecondaryModelRelationTrait;
 
     public $table = 'location';
 
@@ -17,5 +21,6 @@ class Location extends Model
         $this->addField('address', ['type' => 'text']);
 
         $this->hasMany(Event::class, ['model' => [Event::class]]);
+        $this->addSecondaryModelHasMany(SentEmail::class);
     }
 }

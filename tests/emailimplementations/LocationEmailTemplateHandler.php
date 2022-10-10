@@ -24,5 +24,4 @@ class LocationEmailTemplateHandler extends DefaultEmailTemplateHandler
         $htmlTemplate = new $this->htmlTemplateClass($emailTemplate->get('value'));
         return $htmlTemplate;
     }
-
 }

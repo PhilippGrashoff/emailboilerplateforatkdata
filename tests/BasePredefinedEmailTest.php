@@ -2,15 +2,15 @@
 
 namespace emailboilerplateforatkdata\tests;
 
-use Atk4\Data\Field\Email;
 use emailboilerplateforatkdata\Attachment;
 use emailboilerplateforatkdata\BasePredefinedEmail;
 use emailboilerplateforatkdata\EmailAccount;
 use emailboilerplateforatkdata\EmailRecipient;
 use emailboilerplateforatkdata\EmailTemplate;
-use emailboilerplateforatkdata\tests\emailimplementations\EventInvitation;
+use emailboilerplateforatkdata\SentEmail;
 use emailboilerplateforatkdata\tests\emailimplementations\EventSummaryForLocation;
 use emailboilerplateforatkdata\tests\testclasses\Event;
+use emailboilerplateforatkdata\tests\testclasses\FakePhpMailer;
 use emailboilerplateforatkdata\tests\testclasses\Location;
 use traitsforatkdata\TestCase;
 use traitsforatkdata\UserException;
@@ -25,6 +25,7 @@ class BasePredefinedEmailTest extends TestCase
         EmailAccount::class,
         EmailTemplate::class,
         EventSummaryForLocation::class,
+        SentEmail::class
     ];
 
     public function setUp(): void
@@ -123,17 +124,32 @@ class BasePredefinedEmailTest extends TestCase
         );
     }
 
-
-    public function testUseHeaderAndFooterFromFile(): void
+    public function testAddHeaderAndFooter(): void
     {
-    }
+        $emailAccount = new EmailAccount($this->persistence);
+        $emailAccount->save();
+        $location = new Location($this->persistence);
+        $location->save();
 
-    public function testUseHeaderAndFooterFromPersistence(): void
-    {
-    }
+        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['entity' => $location]);
+        $eventSummaryForLocation->loadInitialValues();
+        $eventSummaryForLocation->addRecipient('sometest@sometest.com', 'Peter', 'Maier');
+        $eventSummaryForLocation->send();
+        self::assertStringContainsString('<div id="header">', $eventSummaryForLocation->phpMailer->Body);
+        self::assertStringContainsString('<div id="footer">', $eventSummaryForLocation->phpMailer->Body);
 
-    public function testDoNotAddHeaderAndFooter(): void
-    {
+        $eventSummaryForLocation = new EventSummaryForLocation(
+            $this->persistence,
+            [
+                'entity' => $location,
+                'addHeaderAndFooter' => false
+            ]
+        );
+        $eventSummaryForLocation->loadInitialValues();
+        $eventSummaryForLocation->addRecipient('sometest@sometest.com', 'Peter', 'Maier');
+        $eventSummaryForLocation->send();
+        self::assertStringNotContainsString('<div id="header">', $eventSummaryForLocation->phpMailer->Body);
+        self::assertStringNotContainsString('<div id="footer">', $eventSummaryForLocation->phpMailer->Body);
     }
 
     public function testProcessSubjectAndMessagePerRecipient()
@@ -142,109 +158,44 @@ class BasePredefinedEmailTest extends TestCase
         $emailAccount->save();
         $location = new Location($this->persistence);
         $location->save();
-        $eventInvitation = new EventSummaryForLocation($this->persistence, ['entity' => $location]);
-        $eventInvitation->loadInitialValues();
-        $eventInvitation->addRecipient('test1@easyoutdooroffice.com', 'Peter', 'Maier');
-        $eventInvitation->send();
-        self::assertStringNotContainsString('Hans', $eventInvitation->phpMailer->Body);
-        self::assertStringNotContainsString('Hans', $eventInvitation->phpMailer->Subject);
+        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['entity' => $location]);
+        $eventSummaryForLocation->loadInitialValues();
+        $eventSummaryForLocation->addRecipient('sometest1@sometest.com', 'Peter', 'Maier');
+        $eventSummaryForLocation->send();
+        self::assertStringNotContainsString('Hans', $eventSummaryForLocation->phpMailer->Body);
+        self::assertStringNotContainsString('Hans', $eventSummaryForLocation->phpMailer->Subject);
 
-        $eventInvitation = new EventSummaryForLocation($this->persistence,['entity' => $location]);
-        $eventInvitation->loadInitialValues();
-        $eventInvitation->addRecipient('test1@easyoutdooroffice.com', 'Hans', 'Maier');
-        $eventInvitation->send();
-        self::assertStringContainsString('Hans', $eventInvitation->phpMailer->Body);
-        self::assertStringContainsString('Hans', $eventInvitation->phpMailer->Subject);
+        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['entity' => $location]);
+        $eventSummaryForLocation->loadInitialValues();
+        $eventSummaryForLocation->addRecipient('sometest2@sometest.com', 'Hans', 'Maier');
+        $eventSummaryForLocation->send();
+        self::assertStringContainsString('Hans', $eventSummaryForLocation->phpMailer->Body);
+        self::assertStringContainsString('Hans', $eventSummaryForLocation->phpMailer->Subject);
     }
 
-
-    public function testOnSuccessFunction()
+    public function testOnSuccessfulSend()
     {
-        $base_email = new EventSummaryForLocation(
+        $emailAccount = new EmailAccount($this->persistence);
+        $emailAccount->save();
+        $location = new Location($this->persistence);
+        $location->save();
+        $eventSummaryForLocation = new EventSummaryForLocation(
             $this->persistence,
-            ['template' => '{Subject}BlaDu{$testsubject}{/Subject}BlaDu{$testbody}']
-        );
-        $base_email->loadInitialValues();
-        $base_email->model = new User($this->persistence);
-        $base_email->onSuccess = function ($model) {
-            $model->set('name', 'PIPI');
-        };
-        $base_email->addRecipient('test1@easyoutdooroffice.com');
-        self::assertTrue($base_email->send());
-        self::assertEquals('PIPI', $base_email->model->get('name'));
-    }
-
-
-    public function testGetModelVars()
-    {
-        $be = new BasePredefinedEmail($this->persistence);
-        $res = $be->getModelVars(new User($this->persistence));
-        self::assertEquals(
             [
-                'firstname' => 'Vorname',
-                'lastname' => 'Nachname',
-                'username' => 'Benutzername',
-                'signature' => 'Signatur',
-                'role' => 'Benutzerrolle'
-            ],
-            $res
+                'entity' => $location,
+                'phpMailerClass' => FakePhpMailer::class
+            ]
         );
-    }
-
-    public function testGetModelVarsPrefix()
-    {
-        $be = new BasePredefinedEmail($this->persistence);
-        $res = $be->getModelVars(new User($this->persistence), 'user_');
-        self::assertEquals(
-            [
-                'user_firstname' => 'Vorname',
-                'user_lastname' => 'Nachname',
-                'user_username' => 'Benutzername',
-                'user_signature' => 'Signatur',
-                'user_role' => 'Benutzerrolle'
-            ],
-            $res
+        $eventSummaryForLocation->loadInitialValues();
+        $eventSummaryForLocation->addRecipient('sometest2@sometest.com');
+        $eventSummaryForLocation->send();
+        self::assertSame(
+            1,
+            (int)$location->ref(SentEmail::class)->action('count')->getOne()
         );
-    }
-
-    public function testgetModelVarsUsesGetFieldsForEmailTemplate()
-    {
-        $be = new BasePredefinedEmail($this->persistence);
-        $class = new class() extends User {
-            public function getFieldsForEmailTemplate(): array
-            {
-                return [
-                    'firstname',
-                    'lastname'
-                ];
-            }
-        };
-        $res = $be->getModelVars(new $class($this->persistence),);
-        self::assertEquals(
-            [
-                'firstname' => 'Vorname',
-                'lastname' => 'Nachname',
-            ],
-            $res
-        );
-    }
-
-    public function testgetTemplateEditVars()
-    {
-        $be = new BasePredefinedEmail($this->persistence);
-        $be->model = new User($this->persistence);
-        self::assertEquals(
-            [
-                'Benutzer' =>
-                    [
-                        'user_firstname' => 'Vorname',
-                        'user_lastname' => 'Nachname',
-                        'user_username' => 'Benutzername',
-                        'user_signature' => 'Signatur',
-                        'user_role' => 'Benutzerrolle'
-                    ]
-            ],
-            $be->getTemplateEditVars()
+        self::assertSame(
+            EventSummaryForLocation::class,
+            $location->ref(SentEmail::class)->loadAny()->get('value')
         );
     }
 
@@ -278,18 +229,5 @@ class BasePredefinedEmailTest extends TestCase
         self::assertNull($be->getDefaultEmailAccountId());
         $this->_addStandardEmailAccount($persistence);
         self::assertNotEmpty($be->getDefaultEmailAccountId());
-    }
-
-    public function testSMTPKeepAlive()
-    {
-        $base_email = new EventInvitation(
-            $this->persistence,
-            ['template' => '{Subject}TestMoreThanOneRecipient{/Subject}TestMoreThanOneRecipient{Signature}{/Signature}']
-        );
-        $base_email->loadInitialValues();
-        $base_email->save();
-        self::assertTrue($base_email->addRecipient('test1@easyoutdooroffice.com'));
-        self::assertTrue($base_email->addRecipient('test2@easyoutdooroffice.com'));
-        $base_email->send();
     }
 }

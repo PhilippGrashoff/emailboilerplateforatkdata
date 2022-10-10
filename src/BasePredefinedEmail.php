@@ -6,7 +6,6 @@ use Atk4\Data\Exception;
 use Atk4\Data\Model;
 use Atk4\Ui\Form\Control\Dropdown;
 use Atk4\Ui\HtmlTemplate;
-use Atk4\Ui\Table\Column\Html;
 use traitsforatkdata\UserException;
 
 abstract class BasePredefinedEmail extends Model
@@ -19,7 +18,7 @@ abstract class BasePredefinedEmail extends Model
     //like title, but more descriptive: What is this email for
     public string $description = '';
 
-    protected string $modelClassName = '';
+    protected string $modelClass = '';
     protected $entityId = null;
     public ?Model $entity = null;
 
@@ -34,9 +33,10 @@ abstract class BasePredefinedEmail extends Model
     protected bool $canHaveMultipleTemplates = false;
 
     //PHPMailer instance which takes care of the actual sending
+    public string $phpMailerClass = PHPMailer::class;
     public PHPMailer $phpMailer;
 
-    protected string $emailTemplateHandlerClassName = BaseEmailTemplateHandler::class;
+    protected string $emailTemplateHandlerClass = BaseEmailTemplateHandler::class;
     protected BaseEmailTemplateHandler $emailTemplateHandler;
 
     protected function init(): void
@@ -62,7 +62,7 @@ abstract class BasePredefinedEmail extends Model
         $this->containsMany(EmailRecipient::class, ['model' => [EmailRecipient::class]]);
         $this->containsMany(Attachment::class, ['model' => [Attachment::class]]);
 
-        $this->emailTemplateHandler = new $this->emailTemplateHandlerClassName($this);
+        $this->emailTemplateHandler = new $this->emailTemplateHandlerClass($this);
     }
 
 
@@ -104,7 +104,7 @@ abstract class BasePredefinedEmail extends Model
         }
 
         if ($this->entityId) {
-            $this->entity = new $this->modelClassName($this->persistence);
+            $this->entity = new $this->modelClass($this->persistence);
             $this->entity->load($this->entityId);
             return;
         }
@@ -242,14 +242,13 @@ abstract class BasePredefinedEmail extends Model
         return $successfulSendingToAtLeastOneRecipient;
     }
 
-
     protected function prepareSend(): void
     {
         //superimportant, due to awful behaviour of ref() function we need to make sure $this is loaded
         if (!$this->loaded()) {
             $this->save();
         }
-        $this->phpMailer = new PHPMailer($this->persistence);
+        $this->phpMailer = new $this->phpMailerClass($this->persistence);
         $this->phpMailer->setEmailAccount($this->get('email_account_id') ?? $this->getDefaultEmailAccountId());
 
         //add Attachments
@@ -292,12 +291,16 @@ abstract class BasePredefinedEmail extends Model
      * Check the test files for sample usages.
      */
 
-    protected function processSubjectTemplatePerRecipient(HtmlTemplate $subjectTemplate, EmailRecipient $recipient): void
-    {
+    protected function processSubjectTemplatePerRecipient(
+        HtmlTemplate $subjectTemplate,
+        EmailRecipient $recipient
+    ): void {
     }
 
-    protected function processMessageTemplatePerRecipient(HtmlTemplate $messageTemplate, EmailRecipient $recipient): void
-    {
+    protected function processMessageTemplatePerRecipient(
+        HtmlTemplate $messageTemplate,
+        EmailRecipient $recipient
+    ): void {
     }
 
     protected function processMessageTemplateOnLoad(): void

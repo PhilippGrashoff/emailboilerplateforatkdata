@@ -3,13 +3,14 @@
 namespace emailboilerplateforatkdata\tests\emailimplementations;
 
 use emailboilerplateforatkdata\BasePredefinedEmail;
+use emailboilerplateforatkdata\SentEmail;
 use emailboilerplateforatkdata\tests\testclasses\Event;
 
 class EventInvitation extends BasePredefinedEmail
 {
     public string $defaultTemplateFile = 'event_invitation.html';
-    protected string $modelClassName = Event::class;
-    protected string $emailTemplateHandlerClassName = LocationEmailTemplateHandler::class;
+    protected string $modelClass = Event::class;
+    protected string $emailTemplateHandlerClass = LocationEmailTemplateHandler::class;
 
     protected function processMessageTemplateOnLoad(): void
     {
