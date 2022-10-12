@@ -19,7 +19,7 @@ class EmailAccount extends Model
     {
         parent::init();
         $this->addField(
-            'name',
+            'email_address',
             [
                 'type' => 'string',
                 'caption' => 'Email-Adresse'

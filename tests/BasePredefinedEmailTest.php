@@ -201,33 +201,34 @@ class BasePredefinedEmailTest extends TestCase
 
     public function testSendFromOtherEmailAccount()
     {
-        $ea = new EmailAccount($this->persistence);
-        $ea->set('name', STD_EMAIL);
-        $ea->set('sender_name', 'TESTSENDERNAME');
-        $ea->set('user', EMAIL_USERNAME);
-        $ea->set('password', EMAIL_PASSWORD);
-        $ea->set('smtp_host', EMAIL_HOST);
-        $ea->set('smtp_port', EMAIL_PORT);
-        $ea->set('imap_host', IMAP_HOST);
-        $ea->set('imap_port', IMAP_PORT);
-        $ea->set('imap_sent_folder', IMAP_SENT_FOLDER);
-        $ea->save();
+        $location = new Location($this->persistence);
+        $location->save();
+        $emailAccount1 = new EmailAccount($this->persistence);
+        $emailAccount1->set('email_address', 'sometest1@sometest.com');
+        $emailAccount1->set('sender_name', 'TESTSENDER1');
+        $emailAccount1->save();
 
-        $be = new BasePredefinedEmail($this->persistence);
-        $be->addRecipient('test3@easyoutdooroffice.com');
-        $be->set('email_account_id', $ea->get('id'));
-        $be->set('subject', __FUNCTION__);
+        $emailAccount2 = new EmailAccount($this->persistence);
+        $emailAccount2->set('email_address', 'sometest2@sometest.com');
+        $emailAccount2->set('sender_name', 'TESTSENDER2');
+        $emailAccount2->save();
 
-        self::assertTrue($be->send());
-        self::assertEquals('TESTSENDERNAME', $be->phpMailer->FromName);
-    }
+        $eventSummaryForLocation = new EventSummaryForLocation(
+            $this->persistence,
+            [
+                'entity' => $location,
+                'phpMailerClass' => FakePhpMailer::class
+            ]
+        );
+        $eventSummaryForLocation->loadInitialValues();
+        $eventSummaryForLocation2 = clone $eventSummaryForLocation;
 
-    public function testGetDefaultEmailAccountId()
-    {
-        $persistence = $this->getSqliteTestPersistence();
-        $be = new BasePredefinedEmail($persistence);
-        self::assertNull($be->getDefaultEmailAccountId());
-        $this->_addStandardEmailAccount($persistence);
-        self::assertNotEmpty($be->getDefaultEmailAccountId());
+        $eventSummaryForLocation->set('email_account_id', $emailAccount1->getId());
+        $eventSummaryForLocation->send();
+        self::assertSame('TESTSENDER1', $eventSummaryForLocation->phpMailer->FromName);
+
+        $eventSummaryForLocation2->set('email_account_id', $emailAccount2->getId());
+        $eventSummaryForLocation2->send();
+        self::assertSame('TESTSENDER2', $eventSummaryForLocation2->phpMailer->FromName);
     }
 }

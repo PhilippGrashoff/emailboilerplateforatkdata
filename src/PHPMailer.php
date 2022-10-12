@@ -42,7 +42,7 @@ class PHPMailer extends \PHPMailer\PHPMailer\PHPMailer
         $this->Port = $this->emailAccount->get('smtp_port');
         $this->Username = $this->emailAccount->get('user');
         $this->Password = $this->emailAccount->get('password');
-        $this->setFrom($this->emailAccount->get('name'), $this->emailAccount->get('sender_name'));
+        $this->setFrom($this->emailAccount->get('email_address'), $this->emailAccount->get('sender_name'));
         if ($this->emailAccount->get('allow_self_signed_ssl')) {
             $this->SMTPOptions = [
                 'ssl' => [
