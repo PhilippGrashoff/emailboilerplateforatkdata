@@ -125,7 +125,7 @@ abstract class BaseEmailTemplateHandler
      * return an instance of each found implementation of BasePredefinedEmail in the given folder(s)
      * parameter array: key is the dir to check for classes, value is the namespace
      */
-    protected function getAllPredefinedEmailImplementations(string $directory, Persistence $persistence): array
+    public function getAllPredefinedEmailImplementations(string $directory, Persistence $persistence): array
     {
         $result = [];
         foreach ((new DirectoryIterator($directory)) as $file) {
