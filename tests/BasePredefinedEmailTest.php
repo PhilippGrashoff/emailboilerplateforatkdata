@@ -1,17 +1,17 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests;
+namespace predefinedemailsforatk\tests;
 
-use emailboilerplateforatkdata\Attachment;
-use emailboilerplateforatkdata\BasePredefinedEmail;
-use emailboilerplateforatkdata\EmailAccount;
-use emailboilerplateforatkdata\EmailRecipient;
-use emailboilerplateforatkdata\EmailTemplate;
-use emailboilerplateforatkdata\SentEmail;
-use emailboilerplateforatkdata\tests\emailimplementations\EventSummaryForLocation;
-use emailboilerplateforatkdata\tests\testclasses\Event;
-use emailboilerplateforatkdata\tests\testclasses\FakePhpMailer;
-use emailboilerplateforatkdata\tests\testclasses\Location;
+use predefinedemailsforatk\Attachment;
+use predefinedemailsforatk\BasePredefinedEmail;
+use predefinedemailsforatk\EmailAccount;
+use predefinedemailsforatk\EmailRecipient;
+use predefinedemailsforatk\EmailTemplate;
+use predefinedemailsforatk\SentEmail;
+use predefinedemailsforatk\tests\emailimplementations\EventSummaryForLocation;
+use predefinedemailsforatk\tests\testclasses\Event;
+use predefinedemailsforatk\tests\testclasses\FakePhpMailer;
+use predefinedemailsforatk\tests\testclasses\Location;
 use traitsforatkdata\TestCase;
 use traitsforatkdata\UserException;
 

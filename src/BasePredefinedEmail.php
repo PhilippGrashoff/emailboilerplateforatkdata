@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata;
+namespace predefinedemailsforatk;
 
 use Atk4\Data\Exception;
 use Atk4\Data\Model;

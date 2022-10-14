@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\emailimplementations;
+namespace predefinedemailsforatk\tests\emailimplementations;
 
 use atkuiextendedtemplate\ExtendedHtmlTemplate;
-use emailboilerplateforatkdata\BaseEmailTemplateHandler;
+use predefinedemailsforatk\BaseEmailTemplateHandler;
 
 class DefaultEmailTemplateHandler extends BaseEmailTemplateHandler
 {

@@ -1,13 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\emailimplementations;
+namespace predefinedemailsforatk\tests\emailimplementations;
 
 use Atk4\Ui\HtmlTemplate;
-use emailboilerplateforatkdata\BasePredefinedEmail;
-use emailboilerplateforatkdata\EmailRecipient;
-use emailboilerplateforatkdata\SentEmail;
-use emailboilerplateforatkdata\tests\testclasses\Event;
-use emailboilerplateforatkdata\tests\testclasses\Location;
+use predefinedemailsforatk\BasePredefinedEmail;
+use predefinedemailsforatk\EmailRecipient;
+use predefinedemailsforatk\SentEmail;
+use predefinedemailsforatk\tests\testclasses\Event;
+use predefinedemailsforatk\tests\testclasses\Location;
 
 class EventSummaryForLocation extends BasePredefinedEmail
 {

@@ -1,10 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\emailimplementations;
+namespace predefinedemailsforatk\tests\emailimplementations;
 
-use emailboilerplateforatkdata\BasePredefinedEmail;
-use emailboilerplateforatkdata\SentEmail;
-use emailboilerplateforatkdata\tests\testclasses\Event;
+use predefinedemailsforatk\BasePredefinedEmail;
+use predefinedemailsforatk\SentEmail;
+use predefinedemailsforatk\tests\testclasses\Event;
 
 class EventInvitation extends BasePredefinedEmail
 {

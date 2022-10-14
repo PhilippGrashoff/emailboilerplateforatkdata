@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests;
+namespace predefinedemailsforatk\tests;
 
-use emailboilerplateforatkdata\EmailAccount;
+use predefinedemailsforatk\EmailAccount;
 use traitsforatkdata\TestCase;
 
 class EmailAccountTest extends TestCase

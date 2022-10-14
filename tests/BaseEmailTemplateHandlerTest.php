@@ -1,16 +1,16 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests;
+namespace predefinedemailsforatk\tests;
 
 use Atk4\Data\Persistence;
 use atkuiextendedtemplate\ExtendedHtmlTemplate;
-use emailboilerplateforatkdata\EmailAccount;
-use emailboilerplateforatkdata\EmailTemplate;
-use emailboilerplateforatkdata\tests\emailimplementations\DefaultEmailTemplateHandler;
-use emailboilerplateforatkdata\tests\emailimplementations\EventInvitation;
-use emailboilerplateforatkdata\tests\testclasses\Event;
-use emailboilerplateforatkdata\tests\testclasses\Location;
-use emailboilerplateforatkdata\tests\testclasses\TestDataResult;
+use predefinedemailsforatk\EmailAccount;
+use predefinedemailsforatk\EmailTemplate;
+use predefinedemailsforatk\tests\emailimplementations\DefaultEmailTemplateHandler;
+use predefinedemailsforatk\tests\emailimplementations\EventInvitation;
+use predefinedemailsforatk\tests\testclasses\Event;
+use predefinedemailsforatk\tests\testclasses\Location;
+use predefinedemailsforatk\tests\testclasses\TestDataResult;
 use traitsforatkdata\TestCase;
 
 

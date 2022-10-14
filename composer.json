@@ -1,5 +1,5 @@
 {
-  "name": "philippgrashoff/emailboilerplateforatkdata",
+  "name": "philippgrashoff/predefinedemailsforatk",
   "description": "",
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -22,12 +22,12 @@
   },
   "autoload": {
     "psr-4": {
-      "emailboilerplateforatkdata\\": "src"
+      "predefinedemailsforatk\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "emailboilerplateforatkdata\\tests\\": "tests"
+      "predefinedemailsforatk\\tests\\": "tests"
     }
   }
 }

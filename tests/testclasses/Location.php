@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\testclasses;
+namespace predefinedemailsforatk\tests\testclasses;
 
 use Atk4\Data\Model;
-use emailboilerplateforatkdata\SentEmail;
+use predefinedemailsforatk\SentEmail;
 use secondarymodelforatk\SecondaryModelRelationTrait;
 
 class Location extends Model

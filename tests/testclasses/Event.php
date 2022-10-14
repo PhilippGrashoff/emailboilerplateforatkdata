@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\testclasses;
+namespace predefinedemailsforatk\tests\testclasses;
 
 use Atk4\Data\Model;
 

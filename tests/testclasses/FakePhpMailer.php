@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\testclasses;
+namespace predefinedemailsforatk\tests\testclasses;
 
-use emailboilerplateforatkdata\PHPMailer;
+use predefinedemailsforatk\PHPMailer;
 
 class FakePhpMailer extends PHPMailer
 {

@@ -1,10 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace emailboilerplateforatkdata\tests\emailimplementations;
+namespace predefinedemailsforatk\tests\emailimplementations;
 
 use Atk4\Ui\HtmlTemplate;
-use emailboilerplateforatkdata\EmailTemplate;
-use emailboilerplateforatkdata\tests\testclasses\Location;
+use predefinedemailsforatk\EmailTemplate;
+use predefinedemailsforatk\tests\testclasses\Location;
 
 class LocationEmailTemplateHandler extends DefaultEmailTemplateHandler
 {
