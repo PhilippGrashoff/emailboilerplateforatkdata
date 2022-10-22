@@ -19,8 +19,6 @@ abstract class BasePredefinedEmail extends Model
     public string $description = '';
 
     protected string $modelClass = '';
-    protected $entityId = null;
-    public ?Model $entity = null;
 
     //the template to load to get initial subject and message
     public string $defaultTemplateFile = '';
@@ -97,20 +95,6 @@ abstract class BasePredefinedEmail extends Model
         $this->set('message_template', $this->messageTemplate->renderToHtml());
     }
 
-    protected function setModel(): void
-    {
-        if ($this->entity && $this->entity->loaded()) {
-            return;
-        }
-
-        if ($this->entityId) {
-            $this->entity = new $this->modelClass($this->persistence);
-            $this->entity->load($this->entityId);
-            return;
-        }
-
-        throw new Exception('Either an entity or an ID to load needs to be passed to ' . __FUNCTION__);
-    }
 
     public function addRecipient(string $emailAddress, string $firstname = '', string $lastname = ''): EmailRecipient
     {
@@ -290,6 +274,10 @@ abstract class BasePredefinedEmail extends Model
      * The following methods can be implemented in child classes to create a custom behaviour.
      * Check the test files for sample usages.
      */
+
+    protected function setModel(): void
+    {
+    }
 
     protected function processSubjectTemplatePerRecipient(
         HtmlTemplate $subjectTemplate,

@@ -32,7 +32,6 @@ class BasePredefinedEmailTest extends TestCase
     {
         parent::setUp();
         $this->persistence = $this->getSqliteTestPersistence();
-        //$this->_addStandardEmailAccount($this->persistence);
     }
 
     public function testAddRecipientOnlyAddSameEmailAddressOnce()
@@ -131,7 +130,7 @@ class BasePredefinedEmailTest extends TestCase
         $location = new Location($this->persistence);
         $location->save();
 
-        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['entity' => $location]);
+        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['location' => $location]);
         $eventSummaryForLocation->loadInitialValues();
         $eventSummaryForLocation->addRecipient('sometest@sometest.com', 'Peter', 'Maier');
         $eventSummaryForLocation->send();
@@ -141,7 +140,7 @@ class BasePredefinedEmailTest extends TestCase
         $eventSummaryForLocation = new EventSummaryForLocation(
             $this->persistence,
             [
-                'entity' => $location,
+                'location' => $location,
                 'addHeaderAndFooter' => false
             ]
         );
@@ -158,14 +157,14 @@ class BasePredefinedEmailTest extends TestCase
         $emailAccount->save();
         $location = new Location($this->persistence);
         $location->save();
-        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['entity' => $location]);
+        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['location' => $location]);
         $eventSummaryForLocation->loadInitialValues();
         $eventSummaryForLocation->addRecipient('sometest1@sometest.com', 'Peter', 'Maier');
         $eventSummaryForLocation->send();
         self::assertStringNotContainsString('Hans', $eventSummaryForLocation->phpMailer->Body);
         self::assertStringNotContainsString('Hans', $eventSummaryForLocation->phpMailer->Subject);
 
-        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['entity' => $location]);
+        $eventSummaryForLocation = new EventSummaryForLocation($this->persistence, ['location' => $location]);
         $eventSummaryForLocation->loadInitialValues();
         $eventSummaryForLocation->addRecipient('sometest2@sometest.com', 'Hans', 'Maier');
         $eventSummaryForLocation->send();
@@ -182,7 +181,7 @@ class BasePredefinedEmailTest extends TestCase
         $eventSummaryForLocation = new EventSummaryForLocation(
             $this->persistence,
             [
-                'entity' => $location,
+                'location' => $location,
                 'phpMailerClass' => FakePhpMailer::class
             ]
         );
@@ -216,7 +215,7 @@ class BasePredefinedEmailTest extends TestCase
         $eventSummaryForLocation = new EventSummaryForLocation(
             $this->persistence,
             [
-                'entity' => $location,
+                'location' => $location,
                 'phpMailerClass' => FakePhpMailer::class
             ]
         );

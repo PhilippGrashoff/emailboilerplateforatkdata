@@ -35,7 +35,7 @@ class BaseEmailTemplateHandlerTest extends TestCase
     public function testUseDefaultTemplateFromFile(): void
     {
         $testData = $this->setupTestEventsAndLocations();
-        $eventInvitation = new EventInvitation($this->persistence, ['entity' => $testData->event1]);
+        $eventInvitation = new EventInvitation($this->persistence, ['event' => $testData->event1]);
         $eventInvitation->loadInitialValues();
 
         self::assertSame(
@@ -59,7 +59,7 @@ class BaseEmailTemplateHandlerTest extends TestCase
             . '<div>Please join us for {$event_name} at {$location_name} on the {$event_date}.</div>'
         );
         $emailTemplate->save();
-        $eventInvitation = new EventInvitation($this->persistence, ['entity' => $testData->event1]);
+        $eventInvitation = new EventInvitation($this->persistence, ['event' => $testData->event1]);
         $eventInvitation->loadInitialValues();
 
         self::assertSame(
@@ -87,7 +87,7 @@ class BaseEmailTemplateHandlerTest extends TestCase
         );
 
         $emailTemplate->save();
-        $eventInvitation = new EventInvitation($this->persistence, ['entity' => $testData->event1]);
+        $eventInvitation = new EventInvitation($this->persistence, ['event' => $testData->event1]);
         $eventInvitation->loadInitialValues();
 
         self::assertSame(
@@ -102,7 +102,7 @@ class BaseEmailTemplateHandlerTest extends TestCase
         //location2 has no custom template, so default should be used
         $testData->event1->set('location_id', $testData->location2->getId());
         $testData->event1->save();
-        $eventInvitation = new EventInvitation($this->persistence, ['entity' => $testData->event1]);
+        $eventInvitation = new EventInvitation($this->persistence, ['event' => $testData->event1]);
         $eventInvitation->loadInitialValues();
 
         self::assertSame(
@@ -118,7 +118,7 @@ class BaseEmailTemplateHandlerTest extends TestCase
     public function testCustomHtmlTemplateClassIsUsed(): void
     {
         $testData = $this->setupTestEventsAndLocations();
-        $eventInvitation = new EventInvitation($this->persistence, ['entity' => $testData->event1]);
+        $eventInvitation = new EventInvitation($this->persistence, ['event' => $testData->event1]);
         $handler = new DefaultEmailTemplateHandler($eventInvitation);
         $template = $handler->loadEmailTemplateForPredefinedEmail();
         self::assertInstanceOf(ExtendedHtmlTemplate::class, $template);

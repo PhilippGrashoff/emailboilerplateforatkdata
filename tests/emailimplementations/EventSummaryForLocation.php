@@ -14,6 +14,7 @@ class EventSummaryForLocation extends BasePredefinedEmail
     public string $defaultTemplateFile = 'event_summary_for_location.html';
     protected string $modelClass = Location::class;
     protected string $emailTemplateHandlerClass = DefaultEmailTemplateHandler::class;
+    protected Location $location;
 
     protected HtmlTemplate $eventSubTemplate;
 
@@ -21,14 +22,14 @@ class EventSummaryForLocation extends BasePredefinedEmail
     {
         $this->eventSubTemplate = $this->messageTemplate->cloneRegion('Event');
         $this->messageTemplate->del('Event');
-        if (!$this->entity) {
+        if (!$this->location) {
             return;
         }
-        $this->messageTemplate->set('location_name', $this->entity->get('name'));
+        $this->messageTemplate->set('location_name', $this->location->get('name'));
         $this->messageTemplate->set('postfix_per_recipient', '{$postfix_per_recipient}');
-        foreach ($this->entity->ref(Event::class) as $event) {
+        foreach ($this->location->ref(Event::class) as $event) {
             //Method of custom HtmlTemplate class
-            $this->eventSubTemplate->setTagsFromModel($this->entity, [], 'event_');
+            $this->eventSubTemplate->setTagsFromModel($this->location, [], 'event_');
             $this->messageTemplate->dangerouslyAppendHtml('Event', $this->eventSubTemplate->renderToHtml());
         }
     }
@@ -55,7 +56,7 @@ class EventSummaryForLocation extends BasePredefinedEmail
 
     protected function onSuccessfulSend(): void
     {
-        $sentEmail = new SentEmail($this->persistence, ['parentObject' => $this->entity]);
+        $sentEmail = new SentEmail($this->persistence, ['parentObject' => $this->location]);
         $sentEmail->set('value', __CLASS__);
         $sentEmail->save();
     }
