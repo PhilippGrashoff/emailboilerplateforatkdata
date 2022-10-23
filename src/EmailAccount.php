@@ -35,7 +35,6 @@ class EmailAccount extends Model
         $this->addField(
             'details',
             [
-
                 'type' => 'text'
             ]
         );
