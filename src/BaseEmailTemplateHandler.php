@@ -54,18 +54,8 @@ abstract class BaseEmailTemplateHandler
         return '';
     }
 
-    protected function tryLoadTemplateForEntity(): ?HtmlTemplate
-    {
-        //no model or not loaded?
-        if (!$this->predefinedEmail->entity || !$this->predefinedEmail->entity->loaded()) {
-            return null;
-        }
-
-        return $this->customLoadTemplateForEntity();
-    }
-
     //overwrite for custom implementations
-    protected function customLoadTemplateForEntity(): ?HtmlTemplate
+    protected function tryLoadTemplateForEntity(): ?HtmlTemplate
     {
         return null;
     }

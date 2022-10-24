@@ -2,6 +2,7 @@
 
 namespace predefinedemailsforatk\tests\emailimplementations;
 
+use Atk4\Data\Model;
 use predefinedemailsforatk\BasePredefinedEmail;
 use predefinedemailsforatk\tests\testclasses\Event;
 
@@ -11,6 +12,11 @@ class EventInvitation extends BasePredefinedEmail
     protected string $modelClass = Event::class;
     protected string $emailTemplateHandlerClass = LocationEmailTemplateHandler::class;
     protected Event $event;
+
+    public function getModel(): ?Model
+    {
+        return $this->event;
+    }
 
     protected function processMessageTemplateOnLoad(): void
     {

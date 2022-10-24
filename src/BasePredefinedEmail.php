@@ -2,7 +2,6 @@
 
 namespace predefinedemailsforatk;
 
-use Atk4\Data\Exception;
 use Atk4\Data\Model;
 use Atk4\Ui\Form\Control\Dropdown;
 use Atk4\Ui\HtmlTemplate;
@@ -277,6 +276,11 @@ abstract class BasePredefinedEmail extends Model
 
     protected function setModel(): void
     {
+    }
+
+    public function getModel(): ?Model
+    {
+        return null;
     }
 
     protected function processSubjectTemplatePerRecipient(

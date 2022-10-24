@@ -2,6 +2,7 @@
 
 namespace predefinedemailsforatk\tests\emailimplementations;
 
+use Atk4\Data\Model;
 use Atk4\Ui\HtmlTemplate;
 use predefinedemailsforatk\BasePredefinedEmail;
 use predefinedemailsforatk\EmailRecipient;
@@ -17,6 +18,11 @@ class EventSummaryForLocation extends BasePredefinedEmail
     protected Location $location;
 
     protected HtmlTemplate $eventSubTemplate;
+
+    public function getModel(): ?Model
+    {
+        return $this->location;
+    }
 
     protected function processMessageTemplateOnLoad(): void
     {
